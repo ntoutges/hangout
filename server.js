@@ -25,7 +25,7 @@ var databaseURL = "mongodb://studentmrcode:mrcode123@ds159776.mlab.com:59776/for
 mongodb.MongoClient.connect(databaseURL, function(error, database) {
     db = database;
 
-    app.listen(process.env.PORT, function() {
+    app.listen(process.env.PORT || 3006, function() {
         console.log("app started");
     });
 });
