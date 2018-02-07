@@ -1,0 +1,85 @@
+.lables {
+    position: relative;
+    top: 150px;
+    display: block;
+    width: 450px;
+    margin: auto;
+    font-size: 50px;
+}
+
+#password {
+    margin-left: 12px;
+    width: 50%;
+    height: 45px;
+    font-size: 40px;
+    background-image: url("background.jpg");
+    color: cyan;
+}
+
+#username {
+    width: 50%;
+    height: 45px;
+    font-size: 40px;
+    color: cyan;
+    background-image: url("background.jpg");
+}
+
+#heading {
+    font-size: 100px;
+    margin: auto;
+    width: 310px;
+    top: 100px;
+}
+
+#signInBox {
+    border-style: solid;
+    border-radius: 20px;
+    height: 465px;
+    position: relative;
+    top: 150px;
+    width: 460px;
+    margin: auto;
+}
+
+#seePassword {
+    position: absolute;
+    display: none;
+    top: 20px;
+    left: 380px;
+}
+
+#signInButton {
+    width: 450px;
+    height: 40px;
+    border-radius: 20px;
+}
+
+#body {
+    background-image: url("background.jpg");
+}
+
+#span {
+    margin-left: 10px;
+}
+
+#signUp:hover {
+    color: red;
+}
+
+#signUp:visited {
+    color: orange;
+}
+
+#signUp {
+    color: aqua;
+    text-decoration: none;
+}
+
+.span {
+    color: lightblue;
+}
+
+#warning {
+    font-size: 40px;
+    text-align: center;
+}

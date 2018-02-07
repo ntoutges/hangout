@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Posts</title>
+    <link rel="icon" href="pie-pi.png" type="image/x-icon" />
+    <link rel="stylesheet" href="posts.css" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Arvo" rel="stylesheet">
+</head>
+
+<body>
+    <div id="linkHolder">
+        <a href="/home" id="homeLink" class="links">Home</a>
+        <a href="/posts" id="postLink" class="links">Posts</a>
+    </div>
+    
+    <div id="searchTags">
+        <div id="sidebar">
+            <div id="explanation">
+                Click a tag to delete it
+                <br>
+                Each tag will search on its own
+            </div>
+            <input id="searchTag" placeholder="tag">
+            <button id="submitTag">Submit</button>
+            <div id="tags"></div>
+        </div>
+    </div>
+    <div id="createPost">
+        <div id="container">
+            <div>
+                <textarea rows="10" cols="100" id="post"></textarea>
+                <div id="error"></div>
+                <button id="submit" class="nextTo">Submit Post</button>
+                <textarea rows="1" cols ="85" class="nextTo" id="tag" placeholder="Seperate Tags with ','"></textarea>
+            </div>
+        </div>
+    </div>
+    <div id="postHolder">
+        <%for (var i = posts.length - 1; i >= 0; i--) {%>
+            <div class="posts">
+            <div class="postHeader">Creator: <%=posts[i].creater%></div>
+            <div class="post"><%=posts[i].body%></div>
+            <div class="tagHolder">
+                <%for (var j = 0; j < posts[i].tag.length; j++) {%>
+                    <div class="postTags">#<%=posts[i].tag[j]%></div>
+                <%}%>
+            </div>
+            <div class="lastUpdate"><%=posts[i].date%></div>
+        </div>
+    <% } %>
+    </div>
+    <script type="text/javascript" src="posts.js"></script>
+</body>
+
+</html>

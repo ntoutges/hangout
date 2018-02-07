@@ -1,0 +1,118 @@
+#picture {
+    border-style: solid;
+    height: 250px;
+    width: 250px;
+}
+
+#statusBox {
+    border-style: solid;
+    height: 100%;
+    width: 250px;
+}
+
+#status {
+    text-align: center;
+    font-size: 50px;
+    font-weight: bold;
+}
+
+#updates {
+    font-weight: bold;
+    border-top-style: solid;
+}
+
+#lastUpdate {
+    border-bottom-style: solid;
+}
+
+#admin {
+    font-weight: bold;
+}
+
+#linkHolder {
+    width: 100%;
+    height: 40px;
+    background-color: blue;
+}
+
+.links {
+    position: relative;
+    padding: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    color: lightblue;
+    top: 9px;
+    font-size: 20px;
+    border-style: solid;
+    border-color: black;
+}
+
+#submit {
+    display: block;
+}
+
+#choose {
+    border-style: solid;
+    border-top-style: none;
+    width: 250px;
+}
+
+#info {
+    border-style: solid;
+    height: 480px;
+    margin-left: 270px;
+}
+
+#sidebar {
+    float: left;
+}
+
+#mainPage {
+    overflow: auto;
+    margin-top: 10px;
+}
+
+.sections {
+    border-right-style: solid;
+    display: inline-block;
+    height: 480px;
+    vertical-align: top;
+}
+
+#section4 {
+    border-right-style: none;
+}
+
+.sectionHeaders {
+    border-bottom-style: dotted;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.groups {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.none {
+    text-align: center;
+}
+
+#submitTag {
+    display: inline-block;
+}
+
+#tags {
+    display: inline-block;
+}
+
+#signOut {
+    border-top-style: solid;
+}
+#signOutButton {
+    font-weight: bold;
+    background-color: red;
+    border-color: orange;
+    margin-left: 70px;
+}
