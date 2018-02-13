@@ -1,22 +1,24 @@
-document.getElementById("seePassword").addEventListener("mousedown", function() {
-    document.getElementById("password").setAttribute("type", "text");
+var $ = window.$;
+
+$("#seePassword").mousedown(function() {
+    $("#password").clone().prop('type', 'text').insertAfter('#password').prev().remove();
 });
-document.getElementById("seePassword").addEventListener("mouseup", function() {
-    document.getElementById("password").setAttribute("type", "password");
+$("#seePassword").mouseup(function() {
+    $("#password").clone().prop('type', 'password').insertAfter('#password').prev().remove();
 });
-document.getElementById("seeConfirm").addEventListener("mousedown", function() {
-    document.getElementById("confirm").setAttribute("type", "text");
+$("#seeConfirm").mousedown("mousedown", function() {
+    $("#confirm").clone().prop('type', 'text').insertAfter('#confirm').prev().remove();
 });
-document.getElementById("seeConfirm").addEventListener("mouseup", function() {
-    document.getElementById("confirm").setAttribute("type", "password");
+$("#seeConfirm").mouseup(function() {
+    $("#confirm").clone().prop('type', 'password').insertAfter('#confirm').prev().remove();
 });
 
 var noCoppies = false;
 
-document.getElementById("signUpButton").addEventListener("click", signUp);
-document.getElementById("username").addEventListener("keydown", checkKey);
-document.getElementById("password").addEventListener("keydown", checkKey);
-document.getElementById("confirm").addEventListener("keydown", checkKey);
+$("#signUpButton").click(signUp);
+$("#username").keydown(checkKey);
+$("#password").keydown(checkKey);
+$("#confirm").keydown(checkKey);
 
 function checkKey(event) {
     if (event.keyCode == 13) {
@@ -25,27 +27,27 @@ function checkKey(event) {
 }
 
 function signUp() {
-    var password = document.getElementById("password").value;
-    var confirm = document.getElementById("confirm").value;
-    var username = document.getElementById("username").value;
-    document.getElementById("warning").innerHTML = "";
-    document.getElementById("signUpBox").style.height = "454px";
-    document.getElementById("signUpBox").style.top = "150px";
-
+    var password = $("#password").val();
+    var confirm = $("#confirm").val();
+    var username = $("#username").val();
+    $("#warning").text = "";
+    $("#signUpBox").css("height", "454px");
+    $("#signUpBox").css("top", "150px");
+    
     if (!password || !confirm) {
-        document.getElementById("warning").innerHTML = "Please confirm your password";
-        document.getElementById("signUpBox").style.height = "570px";
-        document.getElementById("signUpBox").style.top = "50px";
+        $("#warning").text("Please confirm your password");
+        $("#signUpBox").css("height", "570px");
+        $("#signUpBox").css("top", "50px");
     }
     else if (!username) {
-        document.getElementById("warning").innerHTML = "Please confirm your username";
-        document.getElementById("signUpBox").style.height = "570px";
-        document.getElementById("signUpBox").style.top = "50px";
+        $("#warning").text("Please confirm your username");
+        $("#signUpBox").css("height", "570px");
+        $("#signUpBox").css("top", "50px");
     }
     else if (password != confirm) {
-        document.getElementById("warning").innerHTML = "The two passwords do not match";
-        document.getElementById("signUpBox").style.height = "570px";
-        document.getElementById("signUpBox").style.top = "50px";
+        $("#warning").text("The two passwords do not match");
+        $("#signUpBox").css("height", "570px");
+        $("#signUpBox").css("top", "50px");
     }
     else {
         createAccount(username, password);
@@ -53,45 +55,47 @@ function signUp() {
     }
 }
 
-document.getElementById("password").addEventListener("input", function() {
-    var showPassword = document.getElementById("seePassword");
+$("#password").on("input", function() {
+    var showPassword = $("#seePassword");
     if (this.value) {
-        showPassword.style.display = "block";
+        showPassword.css("display", "block");
     }
     else if (!this.value) {
-        showPassword.style.display = "none";
+        showPassword.css("display", "none");
     }
 });
-document.getElementById("confirm").addEventListener("input", function() {
-    var showConfirm = document.getElementById("seeConfirm");
+$("#confirm").on("input", function() {
+    var showConfirm = $("#seeConfirm");
     if (this.value) {
-        showConfirm.style.display = "block";
+        showConfirm.css("display", "block");
     }
     else if (!this.value) {
-        showConfirm.style.display = "none";
+        showConfirm.css("display", "none");
     }
 });
 
 function createAccount(username, password) {
-    var request = new XMLHttpRequest();
-    request.open("POST", "/create");
-    request.addEventListener("load", getInfo);
-    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    request.send("username=" + username + "&password=" + password);
+    // send message to server
+    $.post("/create", {
+        username: username,
+        password: password
+    }, function(data, success) {
+        getInfo(data, success);
+    });
 }
 
 function getInfo() {
     var response = this.response;
     if (noCoppies) {
         if (response == "false") {
-            document.getElementById("warning").innerHTML = "That username has been taken";
-            document.getElementById("signUpBox").style.height = "570px";
-            document.getElementById("signUpBox").style.top = "50px";
+            $("#warning").text("That username has been taken");
+            $("#signUpBox").css("height", "570px");
+            $("#signUpBox").css("top", "50px");
         }
         else {
-            document.getElementById("warning").innerHTML = "Account Created";
-            document.getElementById("signUpBox").style.top = "93px";
-            document.getElementById("signUpBox").style.height = "512px";
+            $("#warning").text("Account Created");
+            $("#signUpBox").css("top", "93px");
+            $("#signUpBox").css("height", "512px");
             setTimeout(function () {
                 window.location.href = "/";
             }, 3000);

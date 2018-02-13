@@ -1,6 +1,7 @@
-document.getElementById("signInButton").addEventListener("click", signIn);
-document.getElementById("username").addEventListener("keydown", checkKey);
-document.getElementById("password").addEventListener("keydown", checkKey);
+var $ = window.$;
+$("#signInButton").click(signIn);
+$("#username").keydown(checkKey);
+$("#password").keydown(checkKey);
 
 function checkKey(event) {
     if (event.keyCode == 13) {
@@ -9,70 +10,70 @@ function checkKey(event) {
 }
 
 function signIn() {
-    document.getElementById("warning").innerHTML = "";
-    document.getElementById("signInBox").style.height = "465px";
-    var password = document.getElementById("password").value;
-    var username = document.getElementById("username").value;
+    $("#warning").text("");
+    $("#signInBox").css("height", "465px");
+    var password = $("#password").val();
+    var username = $("#username").val();
 
     if (password != "" && username != "") {
         sendMessage(password, username);
     }
     else if (username == "") {
-        document.getElementById("warning").innerHTML = "Please insert a username";
-        document.getElementById("signInBox").style.height = "515px";
+        $("#warning").text("Please insert a username");
+        $("#signInBox").css("height", "515px");
     }
     else {
-        document.getElementById("warning").innerHTML = "Please insert a password";
-        document.getElementById("signInBox").style.height = "515px";
+        $("#warning").text("Please insert a password");
+        $("#signInBox").css("height", "515px");
     }
 }
 
-document.getElementById("password").addEventListener("input", function() {
-    var password = document.getElementById("password").value;
+$("#password").on("input", function() {
+    var password = $("#password").val();
     if (password) {
-        document.getElementById("seePassword").style.display = "block";
+        $("#seePassword").css("display", "block");
     }
     else {
-        document.getElementById("seePassword").style.display = "none";
+        $("#seePassword").css("display", "none");
     }
 });
 
-document.getElementById("seePassword").addEventListener("mousedown", function() {
-    document.getElementById("password").setAttribute("type", "text");
+$("#seePassword").mousedown(function() {
+    $("#password").clone().prop('type', 'text').insertAfter('#password').prev().remove();
 });
-document.getElementById("seePassword").addEventListener("mouseup", function() {
-    document.getElementById("password").setAttribute("type", "password");
+$("#seePassword").mouseup(function() {
+    $("#password").clone().prop('type', 'password').insertAfter('#password').prev().remove();
 });
 
 function sendMessage(password, username) {
     // send message to server
-    var request = new XMLHttpRequest();
-    request.addEventListener("load", getInfo);
-    request.open("POST", "/info");
-    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    request.send("username=" + username + "&password=" + password);
+    $.post("/info", {
+        username: username,
+        password: password
+    }, function(data, success) {
+        getInfo(data, success);
+    });
 }
 
 // get response from the server
-function getInfo() {
-    var response = this.response;
-    var warning = document.getElementById("warning");
+function getInfo(response, success) {
+    var warning = $("#warning");
 
     if (response != "Off") {
         if (response == "incorrect username") {
-            warning.innerHTML = "Incorrect Username";
-            document.getElementById("signInBox").style.height = "515px";
+            warning.text("Incorrect Username");
+            $("#signInBox").css("height", "515px");
         }
         else if (response == "incorrect password") {
-            document.getElementById("signInBox").style.height = "515px";
-            warning.innerHTML = "Incorrect Password";
+            $("#signInBox").css("height", "515px");
+            warning.text("Incorrect Password");
         }
         else if (response == "correct") {
             window.location.href = "home";
         }
     }
     else {
-        warning.innerHTML = "You Have Been Blocked";
-        document.getElementById("signInBox").style.height = "515px";
+        warning.text("You Have Been Blocked");
+        $("#signInBox").css("height", "515px");
     }
 }

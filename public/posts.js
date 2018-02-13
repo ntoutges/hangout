@@ -1,6 +1,10 @@
-document.getElementById("submit").addEventListener("click", function() {
-    var post = document.getElementById("post").value;
-    var allTags = document.getElementById("tag").value;
+var $ = window.$;
+
+$("#submit").click(submit);
+
+function submit() {
+    var post = $("#post").val();
+    var allTags = $("#tag").val();
     var tags = allTags.split(",");
     for (var i = 0; i < tags.length; i++) {
         tags[i] = tags[i].trim();
@@ -8,25 +12,26 @@ document.getElementById("submit").addEventListener("click", function() {
     if (post) {
         sendPost(post, tags);
     }
-});
-
-function sendPost(post, tag) {
-    var request = new XMLHttpRequest();
-    request.open("POST", "/post");
-    request.addEventListener("load", addPost);
-    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    request.send("post=" + post + "&tags=" + tag);
 }
 
-function addPost() {
-    var response = this.response;
-    if (response == "true") {
-        document.getElementById("post").value = "";
-        document.getElementById("error").innerHTML = "";
+function sendPost(post, tag) {
+    $.post("/post", {
+        post: post,
+        tags: tag
+    }, function(data, success) {
+        addPost(data, success);
+    });
+}
+
+function addPost(data, success) {
+    var response = data;
+    if (response) {
+        $("#post").val("");
+        $("#error").text("");
         window.location.reload();
     }
-    else if (response == "false") {
-        document.getElementById("error").innerHTML = "Sorry, there was an error, please try again";
+    else if (!response) {
+        $("#error").text("Sorry, there was an error, please try again");
     }
     else {
         window.location.href = "/";
@@ -42,38 +47,38 @@ for (var i = 0; i < allPosts.length; i++) {
 
 // add searching tags
 var tags = [];
-document.getElementById("submitTag").addEventListener("click", function() {
-    document.getElementById("postHolder").innerHTML = "";
-    var tag = document.getElementById("searchTag").value;
-    document.getElementById("searchTag").value = "";
+$("#submitTag").click(searchTags);
+function searchTags() {
+    $("#postHolder").text("");
+    var tag = $("#searchTag").val();
+    $("#searchTag").val("");
     tags.push(tag);
     writeTags();
-});
-
-function writeTags() {
-    document.getElementById("tags").innerHTML = "";
-    for (var i = 0; i < tags.length; i++) {
-        var shownTags = document.createElement("div");
-        var shownTagsContainer = document.createElement("div");
-        shownTags.innerHTML = "#" + tags[i];
-        shownTags.setAttribute("class", "userTags");
-        shownTags.setAttribute("id", i);
-        shownTags.addEventListener("click", tagClicked);
-        shownTagsContainer.appendChild(shownTags);
-        document.getElementById("tags").appendChild(shownTagsContainer);
-    }
-    var request = new XMLHttpRequest();
-    request.open("GET", "/tag?tags=" + tags);
-    request.addEventListener("load", showPosts);
-    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    request.send();
 }
 
-function showPosts() {
-    var posts = this.response;
-    document.getElementById("postHolder").innerHTML = "";
-    posts = JSON.parse(posts);
-    for (var i = 0; i < posts.length; i++) {
+function writeTags() {
+    $("#tags").text("");
+    for (var i = 0; i < tags.length; i++) {
+        var shownTags = $("<div></div>");
+        var shownTagsContainer = $("<div></div>");
+        shownTags.text("#" + tags[i]);
+        shownTags.addClass("userTags");
+        shownTags.attr("id", i);
+        shownTags.click(tagClicked);
+        shownTagsContainer.append(shownTags);
+        $("#tags").append(shownTagsContainer);
+    }
+    $.get("/tag", {
+        tags: tags.join(",")
+    }, function(data, success) {
+        showPosts(data, success);
+    });
+}
+
+function showPosts(data, success) {
+    var posts = data;
+    $("#postHolder").text("");
+    for (var i = posts.length - 1; i >= 0; i--) {
         if (posts[i].show) {
             var creater = posts[i].creater;
             var published = posts[i].date;
@@ -83,47 +88,65 @@ function showPosts() {
                 tags.push(posts[i].tag[j]);
             }
             // create containing divs
-            var postHolder = document.createElement("div");
-            var post = document.createElement("div");
-            var header = document.createElement("div");
-            var lastUpdate = document.createElement("div");
-            var tagHolder = document.createElement("div");
+            var postHolder = $("<div></div>");
+            var post = $("<div></div>");
+            var header = $("<div></div>");
+            var lastUpdate = $("<div></div>");
+            var tagHolder = $("<div></div>");
 
             // set styling
-            postHolder.setAttribute("class", "posts");
-            post.setAttribute("class", "post");
-            header.setAttribute("class", "postHeader");
-            lastUpdate.setAttribute("class", "lastUpdate");
+            postHolder.addClass("posts");
+            post.addClass("post");
+            header.addClass("postHeader");
+            lastUpdate.addClass("lastUpdate");
 
             // set values
-            header.innerHTML = creater;
-            lastUpdate.innerHTML = published;
-            
+            header.text(creater);
+            lastUpdate.text(published);
+
             for (var j = 0; j < tags.length; j++) {
-                var seenTags = document.createElement("div");
-                seenTags.innerHTML = "#" + tags[j];
-                seenTags.setAttribute("class", "postTags");
-                tagHolder.appendChild(seenTags);
+                if (tags[j] != "") {
+                    var seenTags = $("<div></div>");
+                    seenTags.text("#" + tags[j]);
+                    seenTags.addClass("postTags");
+                    tagHolder.append(seenTags);
+                }
             }
             // put header in divs
-            postHolder.appendChild(header);
+            postHolder.append(header);
 
             // set values
-            post.innerHTML = body;
+            body = body.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            post.text(body);
 
             // put divs in divs
-            postHolder.appendChild(post);
-            postHolder.appendChild(tagHolder);
-            postHolder.appendChild(lastUpdate);
-            document.getElementById("postHolder").appendChild(postHolder);
+            postHolder.append(post);
+            postHolder.append(tagHolder);
+            postHolder.append(lastUpdate);
+            $("#postHolder").append(postHolder);
         }
     }
 }
 
 function tagClicked() {
-    var id = this.getAttribute("id");
-    id = parseInt(id);
-    console.log(id)
-    tags.pop(id);
+    var id = $(this).attr("id");
+    id = parseInt(id, 10);
+    tags.splice(id, 1);
     writeTags();
+}
+
+$("#tag").keydown(detectKey);
+
+function detectKey(event) {
+    if (event.keyCode == 13) {
+        submit();
+    }
+}
+
+$("#searchTag").keydown(detectKeySearch);
+
+function detectKeySearch(event) {
+    if (event.keyCode == 13) {
+        searchTags();
+    }
 }

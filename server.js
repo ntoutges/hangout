@@ -5,6 +5,8 @@ var bodyParser = require("body-parser");
 var session = require("express-session");
 var formidable = require("formidable");
 var fs = require("fs");
+var Filter = require('bad-words'),
+    filter = new Filter();
 
 var staticFiles = express.static(__dirname + "/public");
 app.use(staticFiles);
@@ -137,6 +139,7 @@ app.get("/home", function(request, response) {
 app.post("/profile", function(request, response) {
     var form = new formidable.IncomingForm();
     form.parse(request, function(error, fields, files) {
+        files.file.name = files.file.name.replace(" ", "");
         var oldpath = files.file.path;
         var newpath = __dirname + "/public/uploads/" + files.file.name;
         db.collection("users").updateOne({
@@ -201,8 +204,8 @@ app.post("/post", function(request, response) {
             var fullDate = month + "/" + day + "/" + year;
 
             var post = request.body.post;
+            post = filter.clean(post);
             tag = request.body.tags;
-            tag = tag.split(",");
 
             var postInfo = {
                 _id: counter,
@@ -263,9 +266,17 @@ function postSendInfo(request, response, posts) {
         response.redirect("/");
     }
     else {
-        response.render("posts", {
-            posts: posts
-        });
+        var pictures = {};
+        var counter = 0;
+        for (var i = 0; i < posts.length; i++) {
+            db.collection("users").findOne({
+                "_id": posts[i].creater
+            }, function(error, database) {
+                pictures[database._id] = database.profilePicture;
+                counter++;
+                sendPosts(response, posts, pictures, counter);
+            });
+        }
     }
 }
 
@@ -273,3 +284,12 @@ app.post("/signOut", function(request, response) {
     request.session.destroy();
     response.send("response");
 });
+
+function sendPosts(response, posts, pictures, counter) {
+    if (counter == posts.length) {
+        response.render("posts", {
+            posts: posts,
+            pictures: pictures
+        });
+    }
+}

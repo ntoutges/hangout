@@ -102,3 +102,16 @@
 .tagHolder {
     margin-left: 10px;
 }
+
+#tag {
+    width: 600px;
+}
+.header {
+    display: inline-block;
+}
+.image {
+    width: 18px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: black;
+}

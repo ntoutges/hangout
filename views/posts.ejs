@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <script type="text/javascript" src="jquery.min.js"></script>
     <title>Posts</title>
     <link rel="icon" href="pie-pi.png" type="image/x-icon" />
     <link rel="stylesheet" href="posts.css" type="text/css" />
@@ -32,18 +33,25 @@
                 <textarea rows="10" cols="100" id="post"></textarea>
                 <div id="error"></div>
                 <button id="submit" class="nextTo">Submit Post</button>
-                <textarea rows="1" cols ="85" class="nextTo" id="tag" placeholder="Seperate Tags with ','"></textarea>
+                <input type="text" id="tag" class="nextTo" placeholder="Seperate tags with ','">
             </div>
         </div>
     </div>
     <div id="postHolder">
         <%for (var i = posts.length - 1; i >= 0; i--) {%>
             <div class="posts">
-            <div class="postHeader">Creator: <%=posts[i].creater%></div>
+            <div class="postHeader">
+                <img src=/uploads/<%=pictures[posts[i].creater]%> class="header image">
+                <div class="header">
+                    Creator: <%=posts[i].creater%>
+                </div>
+            </div>
             <div class="post"><%=posts[i].body%></div>
             <div class="tagHolder">
                 <%for (var j = 0; j < posts[i].tag.length; j++) {%>
-                    <div class="postTags">#<%=posts[i].tag[j]%></div>
+                    <%if (posts[i].tag[j] != "") {%>
+                        <div class="postTags">#<%=posts[i].tag[j]%></div>
+                    <%}%>
                 <%}%>
             </div>
             <div class="lastUpdate"><%=posts[i].date%></div>
