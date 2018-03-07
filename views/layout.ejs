@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <link rel="icon" href="pie-pi.png" type="image/x-icon" />
+    <link rel="stylesheet" href=<%=href%> type="text/css" />
+    <title><%=title%></title>
+</head>
+
+<body id="body">
+    <%if (signedIn) {%>
+        <div id="linkHolder">
+            <a href="/home" id="homeLink" class="links">Home</a>
+            <a href="/posts" id="postLink" class="links">Posts</a>
+            <input type="text" id="search" class="links" placeholder="search for people">
+            <button id="searchLink" class="links">Search</a>
+            <button id="signOutButton" class="links">Sign Out</button>
+            <button id="username" class="username"><%=username%></button>
+        </div>
+    <%}%>
+    <div>
+        <%- defineContent("main") %>
+    </div>
+</body>
+
+</html>

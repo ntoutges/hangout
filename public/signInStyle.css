@@ -27,7 +27,7 @@
 #heading {
     font-size: 100px;
     margin: auto;
-    width: 310px;
+    width: 412px;
     top: 100px;
 }
 
@@ -82,4 +82,24 @@
 #warning {
     font-size: 40px;
     text-align: center;
+}
+
+#submitTag {
+    display: inline-block;
+}
+
+#tags {
+    display: inline-block;
+}
+
+#signOut {
+    border-top-style: solid;
+}
+
+#search {
+    background-color: white;
+}
+
+#signOutButton {
+    margin-left: 2px;
 }

@@ -48,6 +48,7 @@ for (var i = 0; i < allPosts.length; i++) {
 // add searching tags
 var tags = [];
 $("#submitTag").click(searchTags);
+
 function searchTags() {
     $("#postHolder").text("");
     var tag = $("#searchTag").val();
@@ -76,13 +77,15 @@ function writeTags() {
 }
 
 function showPosts(data, success) {
-    var posts = data;
+    var posts = data[0];
+    var users = data[1]
     $("#postHolder").text("");
     for (var i = posts.length - 1; i >= 0; i--) {
         if (posts[i].show) {
             var creater = posts[i].creater;
             var published = posts[i].date;
             var body = posts[i].body;
+            var picture = users[i].profilePicture;
             var tags = [];
             for (var j = 0; j < posts[i].tag.length; j++) {
                 tags.push(posts[i].tag[j]);
@@ -90,6 +93,7 @@ function showPosts(data, success) {
             // create containing divs
             var postHolder = $("<div></div>");
             var post = $("<div></div>");
+            var profilePicture = $("<img>");
             var header = $("<div></div>");
             var lastUpdate = $("<div></div>");
             var tagHolder = $("<div></div>");
@@ -97,11 +101,13 @@ function showPosts(data, success) {
             // set styling
             postHolder.addClass("posts");
             post.addClass("post");
-            header.addClass("postHeader");
+            header.addClass("header");
             lastUpdate.addClass("lastUpdate");
+            profilePicture.addClass("image");
 
             // set values
             header.text(creater);
+            profilePicture.attr("src", "/uploads/" + picture);
             lastUpdate.text(published);
 
             for (var j = 0; j < tags.length; j++) {
@@ -113,6 +119,7 @@ function showPosts(data, success) {
                 }
             }
             // put header in divs
+            postHolder.append(profilePicture);
             postHolder.append(header);
 
             // set values
@@ -149,4 +156,19 @@ function detectKeySearch(event) {
     if (event.keyCode == 13) {
         searchTags();
     }
+}
+$("#searchLink").click(function() {
+    var searchFor = $("#search").val();
+    window.location.href = "/search?user=" + searchFor;
+});
+
+$("#signOutButton").click(function() {
+    $.post("signOut", {},
+        function(data, success) {
+            reload();
+        });
+});
+
+function reload() {
+    window.location.href = "/";
 }

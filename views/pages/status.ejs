@@ -1,0 +1,45 @@
+<%- contentFor("main") %>
+
+<div id="mainPage">
+    <div id="sidebar">
+        <div id="picture">
+            <img src=/uploads/<%=profilePicture%> id="profilePicture">
+            </div>
+                <div id="choose">
+            </div>
+            <div id="admin"><%=admin%></div>
+            <div id="statusBox">
+                <div id="status">Status</div>
+                <div id="updates">Last Update:</div>
+                <div id="lastUpdate"><%=lastUpdate%></div>
+                <div id="likes">Likes/Dislikes</div>
+                <img src="like.png"></img>
+                <span id="allLikes"><%=likes%></span>
+                <img src="dislike.png"></img>
+                <span id="allDislikes"><%=dislikes%></span>
+                <div id="friendHolder">
+                    <button id="friend">Friend</button>
+                </div>
+            </div>
+        </div>
+        <div id="info">
+            <div id="section1" class="sections">
+                <div class="sectionHeaders">Friends</div>
+                <div id="friends"></div>
+            </div>
+            <div id="section2" class="sections">
+                <div class="sectionHeaders">Groups</div>
+                <div id="groups"></div>
+            </div>
+            <div id="section3" class="sections">
+                <div class="sectionHeaders">Preferences</div>
+                <div id="preferences"></div>
+            </div>
+            <div id="section4" class="sections">
+                <div class="sectionHeaders">Misc.</div>
+                <div id="miscellaneous"></div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="status.js"></script>
+        

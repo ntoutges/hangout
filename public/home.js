@@ -34,33 +34,44 @@ function getInformation() {
 }
 
 // display information on the screen
-function getInfo() {
-    var array = "";
+function getInfo(data, success) {
     var friends = "";
     var groups = "";
     var preference = "";
     var misc = "";
-    var response = this.response;
+    var response = data;
     if (response) {
-        array = JSON.parse(response);
-        friends = array[0];
-        groups = array[1];
-        preference = array[2];
-        misc = array[3];
+        friends = response.friends;
+        groups = response.groups;
+        misc = response.misc;
     }
 
     // create elements to add values to
-    for (var i = 1; friends.length >= i; i++) {
+    var friendLength = 0;
+    for (var key in friends) {
+        friendLength++;
         var parent = $("#section1");
         var child = $("<div></div>");
         child.addClass("friends");
-        child.attr("id", "friend" + i);
-        child.text(i + ". " + friends[i - 1]);
+        if (!friends[key][1] && !friends[key][2]) {
+            child.attr("class", "notYet");
+            child.click(function () {
+                confirmFriend($(this).text());
+            });
+        }
+        else if ((!friends[key][1] && friends[key][2]) || (friends[key][1] && !friends[key][2])) {
+            child.attr("class", "almost");
+            child.click(function () {
+                confirmFriend($(this).text());
+            });
+        }
+        child.attr("id", key);
+        child.text(friendLength + ". " + key);
         parent.append(child);
     }
 
     // tell user they currently have no friends
-    if (friends.length == 0) {
+    if (friendLength == 0) {
         var parentBackUp = $("#section1");
         var childBackUp = $("<div></div>");
         childBackUp.addClass("none");
@@ -102,4 +113,18 @@ $("#signOutButton").click(function() {
 
 function reload() {
     window.location.href = "/";
+}
+
+$("#searchLink").click(function() {
+    var searchFor = $("#search").val();
+    window.location.href = "/search?user=" + searchFor;
+});
+
+function confirmFriend(friend) {
+    friend = friend.split(". ", "2");
+    $.post("/confirmFriend", {
+        friend: friend[1]
+    }, function (data, error) {
+        window.location.reload();
+    })
 }

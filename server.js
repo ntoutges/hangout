@@ -2,6 +2,7 @@ var express = require("express");
 var mongodb = require("mongodb");
 var app = express();
 var bodyParser = require("body-parser");
+var expressLayouts = require("express-ejs-layouts");
 var session = require("express-session");
 var formidable = require("formidable");
 var fs = require("fs");
@@ -11,6 +12,7 @@ var Filter = require('bad-words'),
 var staticFiles = express.static(__dirname + "/public");
 app.use(staticFiles);
 app.set("view engine", "ejs");
+app.use(expressLayouts);
 
 var urlencoded = bodyParser.urlencoded({
     extended: true
@@ -35,7 +37,12 @@ mongodb.MongoClient.connect(databaseURL, function(error, database) {
 // sign in
 app.get("/", function(request, response) {
     if (!request.session.username) {
-        response.sendFile(__dirname + "/index.html");
+        response.render("pages/signIn", {
+            href: "signInStyle.css",
+            title: "Sign In",
+            username: request.session.username,
+            signedIn: false
+        });
     }
     else {
         response.redirect("/home");
@@ -69,7 +76,12 @@ app.post("/info", function(request, response) {
 
 // sign up
 app.get("/signUp", function(request, response) {
-    response.sendFile(__dirname + "/signUp.html");
+    response.render("pages/signUp.ejs", {
+        href: "signUp.css",
+        title: "Sign Up",
+        username: request.session.username,
+        signedIn: false
+    });
 });
 
 app.post("/create", function(request, response) {
@@ -88,7 +100,7 @@ app.post("/create", function(request, response) {
                 lastUpdate: "Never",
                 admin: false,
                 profilePicture: "blank-profile-icon.png",
-                friends: [],
+                friends: {},
                 groups: [],
                 misc: []
             };
@@ -116,19 +128,28 @@ app.get("/home", function(request, response) {
             var profilePicture = database.profilePicture;
             var admin = database.admin;
             if (!admin) {
-                response.render("home", {
+                response.render("pages/home", {
                     likes: likes,
                     dislikes: dislikes,
                     lastUpdate: lastUpdate,
-                    profilePicture: "/uploads/" + profilePicture
+                    profilePicture: "/uploads/" + profilePicture,
+                    title: "Home",
+                    href: "home.css",
+                    username: request.session.username,
+                    signedIn: true
+
                 });
             }
             else {
-                response.render("adminHome", {
+                response.render("pages/adminHome", {
                     likes: likes,
                     dislikes: dislikes,
                     lastUpdate: lastUpdate,
-                    profilePicture: "/uploads/" + profilePicture
+                    profilePicture: "/uploads/" + profilePicture,
+                    title: "Admin Home",
+                    href: "home.css",
+                    username: request.session.username,
+                    signedIn: true
                 });
             }
         });
@@ -162,8 +183,11 @@ app.get("/information", function(request, response) {
         var friends = database.friends;
         var groups = database.groups;
         var misc = database.misc;
-
-        var sendInfo = [friends, groups, misc];
+        var sendInfo = {
+            friends: friends,
+            groups: groups,
+            misc: misc
+        };
         response.send(sendInfo);
     });
 });
@@ -175,16 +199,34 @@ app.get("/tag", function(request, response) {
     if (userTags[0] != "") {
         db.collection("Posts").find({
             tag: { $in: userTags }
-        }).toArray(function(error, allPosts) {
-            response.send(allPosts);
+        }).toArray(function(error, allPosts, user) {
+            sendPost(response, allPosts);
         });
     }
     else {
         db.collection("Posts").find({}).toArray(function(error, allPosts) {
-            response.send(allPosts);
+            sendPost(response, allPosts);
         });
     }
 });
+
+function sendPost(response, allPosts) {
+    var user = [];
+    var counter = 0;
+    for (var i = 0; i < allPosts.length; i++) {
+        db.collection("users").findOne({
+            "_id": allPosts[i].creater
+        }, function(error, database) {
+            user.push(database);
+            counter++;
+
+            if (counter == allPosts.length) {
+                var totalPosts = [allPosts, user];
+                response.send(totalPosts);
+            }
+        });
+    }
+}
 
 app.get("/posts", function(request, response) {
     db.collection("Posts").find({}).toArray(function(error, result) {
@@ -268,28 +310,173 @@ function postSendInfo(request, response, posts) {
     else {
         var pictures = {};
         var counter = 0;
-        for (var i = 0; i < posts.length; i++) {
-            db.collection("users").findOne({
-                "_id": posts[i].creater
-            }, function(error, database) {
-                pictures[database._id] = database.profilePicture;
-                counter++;
-                sendPosts(response, posts, pictures, counter);
-            });
+        if (posts.length > 0) {
+            for (var i = 0; i < posts.length; i++) {
+                db.collection("users").findOne({
+                    "_id": posts[i].creater
+                }, function(error, database) {
+                    pictures[database._id] = database.profilePicture;
+                    counter++;
+                    sendPosts(request, response, posts, pictures, counter);
+                });
+            }
+        }
+        else {
+            sendPosts(request, response, posts, pictures, counter);
+            // the magic number is right here do not move this line at all and if you do you will face the wrath of pi because logic    
         }
     }
 }
+
 
 app.post("/signOut", function(request, response) {
     request.session.destroy();
     response.send("response");
 });
 
-function sendPosts(response, posts, pictures, counter) {
+function sendPosts(request, response, posts, pictures, counter) {
     if (counter == posts.length) {
-        response.render("posts", {
+        response.render("pages/posts", {
             posts: posts,
-            pictures: pictures
+            pictures: pictures,
+            title: "Posts",
+            href: "posts.css",
+            username: request.session.username,
+            signedIn: true
         });
     }
 }
+
+// add friends
+app.post("/friend", function(request, response) {
+    var friend = request.body.friend;
+
+    db.collection("users").findOne({
+        "_id": friend
+    }, function(error, database) {
+        var allFriends = database.friends;
+        allFriends[request.session.username] = [request.session.username, true, false];
+
+        db.collection("users").updateOne({
+            "_id": friend
+        }, {
+            $set: {
+                "friends": allFriends
+            }
+        });
+    });
+    db.collection("users").findOne({
+        "_id": request.session.username
+    }, function(error, database) {
+        var allFriends = database.friends;
+        allFriends[friend] = [request.session.username, true, false];
+        db.collection("users").updateOne({
+            "_id": request.session.username
+        }, {
+            $set: {
+                "friends": allFriends
+            }
+        })
+    })
+});
+
+// search for people to friend
+app.get("/search", function(request, response) {
+    if (request.session.username) {
+        var user = request.query.user;
+        var value = ".*" + user + ".*";
+        db.collection("users").find({ "_id": new RegExp(value, "i") }).sort({
+            "_id": 1
+        }).toArray(function(error, users) {
+            for (var i = 0; i < users.length; i++) {
+                if (users[i]._id == request.session.username) {
+                    users.splice(i, 1);
+                }
+            }
+            response.render("pages/search", {
+                users: users,
+                title: "Search",
+                href: "search.css",
+                username: request.session.username,
+                signedIn: true
+            });
+        });
+    }
+    else {
+        response.redirect("/");
+    }
+});
+
+// status on possible friend
+
+app.get("/status", function(request, response) {
+    if (request.session.username) {
+        var friend = request.query.user;
+        db.collection("users").findOne({
+            "_id": friend
+        }, function(error, database) {
+            var adminTell = "";
+            if (database.admin) {
+                adminTell = "Admin";
+            }
+            response.render("pages/status", {
+                friend: friend,
+                profilePicture: database.profilePicture,
+                lastUpdate: database.lastUpdate,
+                likes: database.likes,
+                dislikes: database.dislikes,
+                admin: adminTell,
+                title: "Status",
+                href: "status.css",
+                username: friend,
+                signedIn: true
+            });
+        });
+    }
+    else {
+        response.redirect("/");
+    }
+});
+
+app.post("/confirmFriend", function(request, response) {
+    var friend = request.body.friend;
+    var updateFriends = "";
+    var updateFriendsFriend = "";
+
+    db.collection("users").findOne({
+        "_id": request.session.username
+    }, function(personError, personDatabase) {
+
+        db.collection("users").findOne({
+            "_id": friend
+        }, function(friendError, friendDatabase) {
+            updateFriendsFriend = friendDatabase.friends;
+            updateFriends = personDatabase.friends;
+            var friender = personDatabase.friends[friend][0];
+            if (friender == request.session.username) {
+                updateFriends[friend][1] = true;
+                updateFriendsFriend[request.session.username][1] = true;
+            }
+            else {
+                updateFriends[friend][2] = true;
+                updateFriendsFriend[request.session.username][2] = true;
+            }
+
+            db.collection("users").updateOne({
+                "_id": request.session.username
+            }, {
+                $set: {
+                    friends: updateFriends
+                }
+            });
+            db.collection("users").updateOne({
+                "_id": friend
+            }, {
+                $set: {
+                    friends: updateFriendsFriend
+                }
+            });
+            response.send("reload");
+        });
+    });
+});

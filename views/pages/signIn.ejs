@@ -1,12 +1,4 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-    <script type="text/javascript" src="jquery.min.js"></script>
-    <title>Sign In</title>
-    <link rel="icon" href="pi-pie.png" type="image/x-icon" />
-    <link rel="stylesheet" href="signInStyle.css" type="text/css" />
-</head>
+<%- contentFor("main") %>
 
 <body id="body">
     <div id="signInBox">
@@ -14,7 +6,9 @@
         <a href="signUp" id="signUp" class="span">here</a>
         <span class="span"> to sign-up</span>
         <div id="signIn">
-            <div id="heading"><b>Sign In</b></div>
+            <div id="heading">
+                    <b id="hangouts">Hangout</b>
+                </div>
             <div class="lables">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" />
@@ -30,6 +24,3 @@
         </div>
     </div>
     <script type="text/javascript" src="signInJavascript.js"></script>
-</body>
-
-</html>

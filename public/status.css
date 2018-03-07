@@ -1,5 +1,18 @@
+#body {
+    background-color: lightgray;
+}
+
+#name {
+    color: white;
+    background-color: orange;
+    display: inline-block;
+    border-radius: 5px;
+    width: 100%;
+}
+
 #picture {
     border-style: solid;
+    border-bottom-style: none;
     height: 250px;
     width: 250px;
     text-align: center;
@@ -47,9 +60,10 @@
     border-color: black;
     background-color: blue;
     border-width: 2px;
+    display: inline-block;
 }
 
-.links:hover {
+.links:a {
     cursor: pointer;
 }
 
@@ -125,8 +139,77 @@
     background-color: white;
 }
 
-#search:hover {
-    cursor: text;
+#signOutButton {
+    margin-left: 2px;
+}
+
+#admin {
+    text-align: center;
+}
+
+#friendHolder {
+    border-top-style: solid;
+}
+
+#friend {
+    width: 100%;
+    font-weight: bold;
+    background-color: green;
+    border-style: none;
+    font-size: 30px;
+    height: 40px;
+    transition-duration: 0.6s;
+}
+
+#friend:hover {
+    background-color: blue;
+    transition-duration: 0.6s;
+}
+
+#leaveButton {
+    background-color: orange;
+    border-color: black;
+}
+
+#leaveButton #leaveText {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+    transition: 0.5s;
+}
+
+#leaveButton #leaveText:after {
+    content: '\<<';
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: 50px;
+    transition: 0.5s;
+}
+
+#leaveButton:hover #leaveText {
+    padding-right: 20px;
+}
+
+#leaveButton:hover #leaveText:after {
+    opacity: 1;
+    right: 0;
+}
+
+#submitTag {
+    display: inline-block;
+}
+
+#tags {
+    display: inline-block;
+}
+
+#signOut {
+    border-top-style: solid;
+}
+
+#search {
+    background-color: white;
 }
 
 #signOutButton {
@@ -136,18 +219,9 @@
 #username {
     position: absolute;
     border-color: black;
-    background-color: green;
+    background-color: lightgray;
     font-size: 20px;
     font-weight: bold;
     padding: 6px;
     right: 10px;
-}
-
-.notYet {
-    background-color: yellow;
-    cursor: pointer;
-}
-.almost {
-    background-color: green;
-    cursor: pointer;
 }
