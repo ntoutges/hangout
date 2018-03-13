@@ -25,10 +25,11 @@
 }
 
 #heading {
+    position: relative;
+    top: 10px;
     font-size: 100px;
     margin: auto;
     width: 412px;
-    top: 100px;
 }
 
 #signInBox {

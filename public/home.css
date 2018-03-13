@@ -143,11 +143,11 @@
     right: 10px;
 }
 
-.notYet {
+.almost {
     background-color: yellow;
     cursor: pointer;
 }
-.almost {
-    background-color: green;
+
+.friends {
     cursor: pointer;
 }

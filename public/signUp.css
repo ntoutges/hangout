@@ -35,10 +35,11 @@
 }
 
 #heading {
+    position: relative;
+    top: 10px;
     font-size: 100px;
     margin: auto;
     width: 350px;
-    top: 100px;
 }
 
 #signUpBox {

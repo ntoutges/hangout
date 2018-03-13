@@ -79,7 +79,6 @@ app.get("/signUp", function(request, response) {
     response.render("pages/signUp.ejs", {
         href: "signUp.css",
         title: "Sign Up",
-        username: request.session.username,
         signedIn: false
     });
 });
@@ -132,7 +131,7 @@ app.get("/home", function(request, response) {
                     likes: likes,
                     dislikes: dislikes,
                     lastUpdate: lastUpdate,
-                    profilePicture: "/uploads/" + profilePicture,
+                    profilePicture: "/profileUploads/" + profilePicture,
                     title: "Home",
                     href: "home.css",
                     username: request.session.username,
@@ -145,7 +144,7 @@ app.get("/home", function(request, response) {
                     likes: likes,
                     dislikes: dislikes,
                     lastUpdate: lastUpdate,
-                    profilePicture: "/uploads/" + profilePicture,
+                    profilePicture: "/profileUploads/" + profilePicture,
                     title: "Admin Home",
                     href: "home.css",
                     username: request.session.username,
@@ -158,20 +157,24 @@ app.get("/home", function(request, response) {
 
 // home page: profile picture
 app.post("/profile", function(request, response) {
-    var form = new formidable.IncomingForm();
-    form.parse(request, function(error, fields, files) {
-        files.file.name = files.file.name.replace(" ", "");
-        var oldpath = files.file.path;
-        var newpath = __dirname + "/public/uploads/" + files.file.name;
-        db.collection("users").updateOne({
-            "_id": request.session.username
-        }, {
-            $set: {
-                "profilePicture": files.file.name
-            }
-        });
-        fs.rename(oldpath, newpath, function(error) {
-            response.redirect("/home");
+    db.collection("users").find({}).toArray(function(error, allUsers) {
+        var number = allUsers.length;
+        var form = new formidable.IncomingForm();
+        form.parse(request, function(error, fields, files) {
+            files.file.name = files.file.name.replace(" ", "");
+            var oldpath = files.file.path;
+            var name = number + files.file.name;
+            var newpath = __dirname + "/public/profileUploads/" + name;
+            db.collection("users").updateOne({
+                "_id": request.session.username
+            }, {
+                $set: {
+                    "profilePicture": name
+                }
+            });
+            fs.rename(oldpath, newpath, function(error) {
+                response.redirect("/home");
+            });
         });
     });
 });
@@ -229,46 +232,15 @@ function sendPost(response, allPosts) {
 }
 
 app.get("/posts", function(request, response) {
-    db.collection("Posts").find({}).toArray(function(error, result) {
+    db.collection("Posts").find({}).sort({
+        "_id": 1
+    }).toArray(function(error, result) {
         postSendInfo(request, response, result);
     });
 });
 app.post("/post", function(request, response) {
     if (request.session.username) {
-        var tag = "";
-        db.collection("Posts").find({}).toArray(function(error, result) {
-            // determine ID
-            var counter = result.length;
-            var date = new Date();
-            var month = date.getMonth() + 1;
-            var day = date.getDate();
-            var year = date.getFullYear();
-            var fullDate = month + "/" + day + "/" + year;
-
-            var post = request.body.post;
-            post = filter.clean(post);
-            tag = request.body.tags;
-
-            var postInfo = {
-                _id: counter,
-                creater: request.session.username,
-                body: post,
-                date: fullDate,
-                tag: tag,
-                show: true
-            };
-            db.collection("Posts").insertOne(postInfo, function(error, res) {
-                if (!error) {
-                    response.send(true);
-                }
-                else {
-                    response.send(false);
-                }
-            });
-            for (var i = 0; i < tag.length; i++) {
-                setTags(tag[i], counter);
-            }
-        });
+        postInfoPicture(request, response);
     }
     else {
         response.send("reload");
@@ -323,7 +295,6 @@ function postSendInfo(request, response, posts) {
         }
         else {
             sendPosts(request, response, posts, pictures, counter);
-            // the magic number is right here do not move this line at all and if you do you will face the wrath of pi because logic    
         }
     }
 }
@@ -344,6 +315,7 @@ function sendPosts(request, response, posts, pictures, counter) {
             username: request.session.username,
             signedIn: true
         });
+        // the magic number is right here do not move this line at all and if you do you will face the wrath of pi because logic
     }
 }
 
@@ -438,6 +410,7 @@ app.get("/status", function(request, response) {
     }
 });
 
+// home: confirm friend
 app.post("/confirmFriend", function(request, response) {
     var friend = request.body.friend;
     var updateFriends = "";
@@ -480,3 +453,109 @@ app.post("/confirmFriend", function(request, response) {
         });
     });
 });
+
+// delete friend
+app.post("/deleteFriend", function(request, response) {
+    var friend = request.body.friend;
+    var updateFriends = "";
+    var updateFriendsFriend = "";
+
+    db.collection("users").findOne({
+        "_id": request.session.username
+    }, function(personError, personDatabase) {
+
+        db.collection("users").findOne({
+            "_id": friend
+        }, function(friendError, friendDatabase) {
+            updateFriendsFriend = friendDatabase.friends;
+            updateFriends = personDatabase.friends;
+
+            console.log(updateFriends)
+            // delete non-friends
+            delete updateFriends[friend];
+            delete updateFriendsFriend[request.session.username];
+
+            db.collection("users").updateOne({
+                "_id": request.session.username
+            }, {
+                $set: {
+                    friends: updateFriends
+                }
+            });
+            db.collection("users").updateOne({
+                "_id": friend
+            }, {
+                $set: {
+                    friends: updateFriendsFriend
+                }
+            });
+            response.send("reload");
+        });
+    });
+});
+
+app.post("/postImage", function(request, response) {
+    // find what image # to use
+    var imgCounter = 0;
+    db.collection("Posts").find({}).toArray(function(error, allPosts) {
+        imgCounter = allPosts.length;
+
+        var subCounter = imgCounter;
+        var form = new formidable.IncomingForm();
+        form.parse(request, function(error, fields, files) {
+            files.file.name = files.file.name.replace(" ", "");
+            var oldpath = files.file.path;
+            var name = subCounter + files.file.name;
+            var newpath = __dirname + "/public/postUploads/" + name;
+            fs.rename(oldpath, newpath, function(error) {
+                response.redirect("/posts");
+            });
+        });
+    });
+});
+
+function postInfoPicture(request, response) {
+    // find what image # to use
+    var imgCounter = 0;
+    db.collection("Posts").find({}).toArray(function(error, allPosts) {
+        imgCounter = allPosts.length;
+
+        var tag = "";
+        var subCounter = imgCounter;
+        db.collection("Posts").find({}).toArray(function(error, result) {
+            var postCounter = result.length;
+            // determine ID
+            var date = new Date();
+            var month = date.getMonth() + 1;
+            var day = date.getDate();
+            var year = date.getFullYear();
+            var fullDate = month + "/" + day + "/" + year;
+            var img = subCounter + request.body.img;
+
+            var post = request.body.post;
+            post = filter.clean(post);
+            tag = request.body.tags;
+
+            var postInfo = {
+                _id: postCounter,
+                creater: request.session.username,
+                body: post,
+                picture: img,
+                date: fullDate,
+                tag: tag,
+                show: true
+            };
+            db.collection("Posts").insertOne(postInfo, function(error, res) {
+                if (!error) {
+                    response.send(true);
+                }
+                else {
+                    response.send(false);
+                }
+            });
+            for (var i = 0; i < tag.length; i++) {
+                setTags(tag[i], postCounter);
+            }
+        });
+    });
+}

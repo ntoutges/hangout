@@ -17,8 +17,12 @@
             <div>
                 <textarea rows="10" cols="100" id="post"></textarea>
                 <div id="error"></div>
-                <button id="submit" class="nextTo">Submit Post</button>
                 <input type="text" id="tag" class="nextTo" placeholder="Seperate tags with ','">
+                
+                <form action="/postImage" method="post" enctype="multipart/form-data" class="nextTo">
+                    <input type="file" name="file" id="file">
+                    <input type="submit" id="submit" class="nextTo">
+                </form>
             </div>
         </div>
     </div>
@@ -26,12 +30,17 @@
         <%for (var i = posts.length - 1; i >= 0; i--) {%>
             <div class="posts">
             <div class="postHeader">
-                <img src=/uploads/<%=pictures[posts[i].creater]%> class="header image">
+                <img src=/profileUploads/<%=pictures[posts[i].creater]%> class="header image">
                 <div class="header">
                     Creator: <%=posts[i].creater%>
                 </div>
             </div>
             <div class="post"><%=posts[i].body%></div>
+            <%if(posts[i].picture) {%>
+                <div class="pictureHolder">
+                        <img src=/postUploads/<%=posts[i].picture%> class="postPicture">
+                </div>
+            <%}%>
             <div class="tagHolder">
                 <%for (var j = 0; j < posts[i].tag.length; j++) {%>
                     <%if (posts[i].tag[j] != "") {%>

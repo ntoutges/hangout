@@ -4,20 +4,24 @@ $("#submit").click(submit);
 
 function submit() {
     var post = $("#post").val();
+    var imgName = $("#file").val();
+    imgName = imgName.split("\\", "3")[2];
+
     var allTags = $("#tag").val();
     var tags = allTags.split(",");
     for (var i = 0; i < tags.length; i++) {
         tags[i] = tags[i].trim();
     }
     if (post) {
-        sendPost(post, tags);
+        sendPost(post, tags, imgName);
     }
 }
 
-function sendPost(post, tag) {
+function sendPost(post, tag, img) {
     $.post("/post", {
         post: post,
-        tags: tag
+        tags: tag,
+        img: img
     }, function(data, success) {
         addPost(data, success);
     });
@@ -78,59 +82,51 @@ function writeTags() {
 
 function showPosts(data, success) {
     var posts = data[0];
-    var users = data[1]
+    var users = data[1];
     $("#postHolder").text("");
     for (var i = posts.length - 1; i >= 0; i--) {
         if (posts[i].show) {
             var creater = posts[i].creater;
             var published = posts[i].date;
             var body = posts[i].body;
+            // escape body
+            body = body.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
             var picture = users[i].profilePicture;
+            var postImage = posts[i].picture;
             var tags = [];
+
             for (var j = 0; j < posts[i].tag.length; j++) {
                 tags.push(posts[i].tag[j]);
             }
             // create containing divs
-            var postHolder = $("<div></div>");
-            var post = $("<div></div>");
-            var profilePicture = $("<img>");
-            var header = $("<div></div>");
-            var lastUpdate = $("<div></div>");
-            var tagHolder = $("<div></div>");
-
-            // set styling
-            postHolder.addClass("posts");
-            post.addClass("post");
-            header.addClass("header");
-            lastUpdate.addClass("lastUpdate");
-            profilePicture.addClass("image");
-
-            // set values
-            header.text(creater);
-            profilePicture.attr("src", "/uploads/" + picture);
-            lastUpdate.text(published);
-
+            var postHolder = $("<div class=posts>" +
+                "<div class=postHeader>" +
+                "<img src=/profileUploads/" + picture + " class= 'header image'>" +
+                "<div class=header> Creator: " + creater + "</div>" +
+                "</div>" +
+                "<div class=post>" + body + "</div>" + 
+                "</div>");
+            var img = "";
+            if (postImage) {
+                img = $("<div class=pictureHolder>" +
+                    "<img src=/postUploads/" + postImage + " class=postPicture>" +
+                    "</div>");
+            }
+            var allTags = "";
             for (var j = 0; j < tags.length; j++) {
                 if (tags[j] != "") {
-                    var seenTags = $("<div></div>");
-                    seenTags.text("#" + tags[j]);
-                    seenTags.addClass("postTags");
-                    tagHolder.append(seenTags);
+                    allTags += "#" + tags[j] + " ";
                 }
             }
-            // put header in divs
-            postHolder.append(profilePicture);
-            postHolder.append(header);
-
-            // set values
-            body = body.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            post.text(body);
+            var tagElement = $("<div class=tagHolder>" +
+                "<div class=postTags>" + allTags + "</div>" +
+                "</div>");
 
             // put divs in divs
-            postHolder.append(post);
-            postHolder.append(tagHolder);
-            postHolder.append(lastUpdate);
             $("#postHolder").append(postHolder);
+            postHolder.append(img);
+            postHolder.append(tagElement);
         }
     }
 }

@@ -53,22 +53,22 @@ function getInfo(data, success) {
         var parent = $("#section1");
         var child = $("<div></div>");
         child.addClass("friends");
-        if (!friends[key][1] && !friends[key][2]) {
-            child.attr("class", "notYet");
-            child.click(function () {
-                confirmFriend($(this).text());
-            });
-        }
-        else if ((!friends[key][1] && friends[key][2]) || (friends[key][1] && !friends[key][2])) {
-            child.attr("class", "almost");
-            child.click(function () {
-                confirmFriend($(this).text());
-            });
-        }
-        child.attr("id", key);
+        child.attr("id", "friend" + friendLength);
         child.text(friendLength + ". " + key);
         parent.append(child);
     }
+    if ((!friends[key][1] && friends[key][2]) || (friends[key][1] && !friends[key][2])) {
+        child.attr("class", "almost");
+        child.click(function() {
+            confirmFriend($(this).text());
+        });
+    }
+    child.contextmenu(function() {
+        deleteFriend($(this).text());
+    });
+    child.attr("id", key);
+    child.text(friendLength + ". " + key);
+    parent.append(child);
 
     // tell user they currently have no friends
     if (friendLength == 0) {
@@ -83,7 +83,7 @@ function getInfo(data, success) {
         var parent1 = $("#section2");
         var child1 = $("<div></div>");
         child1.addClass("groups");
-        child1.addClass("group" + i);
+        child1.attr("id", "group" + i);
         child1.text(i + ". " + groups[i - 1]);
         parent1.append(child1);
     }
@@ -124,7 +124,17 @@ function confirmFriend(friend) {
     friend = friend.split(". ", "2");
     $.post("/confirmFriend", {
         friend: friend[1]
-    }, function (data, error) {
+    }, function(data, error) {
         window.location.reload();
-    })
+    });
+}
+
+function deleteFriend(friend) {
+    console.log("clicked")
+    friend = friend.split(". ", "2");
+    $.post("/deleteFriend", {
+        friend: friend[1]
+    }, function(data, error) {
+        window.location.reload();
+    });
 }
