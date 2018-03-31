@@ -1,46 +1,6 @@
 var $ = window.$;
 
-$("#submit").click(submit);
-
-function submit() {
-    var post = $("#post").val();
-    var imgName = $("#file").val();
-    imgName = imgName.split("\\", "3")[2];
-
-    var allTags = $("#tag").val();
-    var tags = allTags.split(",");
-    for (var i = 0; i < tags.length; i++) {
-        tags[i] = tags[i].trim();
-    }
-    if (post) {
-        sendPost(post, tags, imgName);
-    }
-}
-
-function sendPost(post, tag, img) {
-    $.post("/post", {
-        post: post,
-        tags: tag,
-        img: img
-    }, function(data, success) {
-        addPost(data, success);
-    });
-}
-
-function addPost(data, success) {
-    var response = data;
-    if (response) {
-        $("#post").val("");
-        $("#error").text("");
-        window.location.reload();
-    }
-    else if (!response) {
-        $("#error").text("Sorry, there was an error, please try again");
-    }
-    else {
-        window.location.href = "/";
-    }
-}
+//$("#submit").click(submit); // THIS IS THE PROBLEM, I THINK
 
 var allPosts = document.getElementsByClassName("posts");
 var post = document.getElementsByClassName("post");

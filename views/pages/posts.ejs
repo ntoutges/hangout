@@ -12,27 +12,31 @@
             <div id="tags"></div>
         </div>
     </div>
-    <div id="createPost">
-        <div id="container">
-            <div>
-                <textarea rows="10" cols="100" id="post"></textarea>
-                <div id="error"></div>
-                <input type="text" id="tag" class="nextTo" placeholder="Seperate tags with ','">
-                
-                <form action="/postImage" method="post" enctype="multipart/form-data" class="nextTo">
+    <form action="/post" method="post" enctype="multipart/form-data" class="nextTo">
+        <div id="createPost">
+            <div id="container">
+                <div>
+                    <textarea name="post" rows="10" cols="100" id="post"></textarea>
+                    <div id="error"></div>
+                    <input type="text" name="tag" id="tag" class="nextTo" placeholder="Seperate tags with ','">
+                    
                     <input type="file" name="file" id="file">
                     <input type="submit" id="submit" class="nextTo">
-                </form>
+                </div>
             </div>
         </div>
-    </div>
+    </form>
     <div id="postHolder">
         <%for (var i = posts.length - 1; i >= 0; i--) {%>
             <div class="posts">
             <div class="postHeader">
                 <img src=/profileUploads/<%=pictures[posts[i].creater]%> class="header image">
                 <div class="header">
-                    Creator: <%=posts[i].creater%>
+                    Creator:
+                    <%if (posts[i].student == true) {%>
+                        <span>[student]</span>
+                    <%}%>
+                    <%=posts[i].creater%>
                 </div>
             </div>
             <div class="post"><%=posts[i].body%></div>

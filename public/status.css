@@ -223,5 +223,30 @@
     font-size: 20px;
     font-weight: bold;
     padding: 6px;
-    right: 10px;
+    right: 5px;
+}
+
+#section3 {
+    padding-right: 10px;
+    height: 454px;
+    border-bottom-style: dashed;
+}
+
+#section4 {
+    height: 454px;
+    border-bottom-style: dashed;
+}
+
+#biographyText {
+    border-color: gray;
+    border-style: solid;
+    border-width: 1px;
+    height: 420px;
+    padding-top: 2px;
+    padding-left: 2px;
+}
+
+#seperation {
+    margin-top: 6px;
+    font-size: 20px;
 }

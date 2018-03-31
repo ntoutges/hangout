@@ -6,6 +6,7 @@ var expressLayouts = require("express-ejs-layouts");
 var session = require("express-session");
 var formidable = require("formidable");
 var fs = require("fs");
+var imageMagick = require("node-imagemagick");
 var Filter = require('bad-words'),
     filter = new Filter();
 
@@ -101,7 +102,9 @@ app.post("/create", function(request, response) {
                 profilePicture: "blank-profile-icon.png",
                 friends: {},
                 groups: [],
-                misc: []
+                misc: [],
+                biography: "",
+                student: false
             };
             db.collection("users").insertOne(information, function(error, result) {});
             response.send(true);
@@ -126,6 +129,7 @@ app.get("/home", function(request, response) {
             var lastUpdate = database.lastUpdate;
             var profilePicture = database.profilePicture;
             var admin = database.admin;
+            var biography = database.biography;
             if (!admin) {
                 response.render("pages/home", {
                     likes: likes,
@@ -135,7 +139,8 @@ app.get("/home", function(request, response) {
                     title: "Home",
                     href: "home.css",
                     username: request.session.username,
-                    signedIn: true
+                    signedIn: true,
+                    biography: biography
 
                 });
             }
@@ -158,23 +163,48 @@ app.get("/home", function(request, response) {
 // home page: profile picture
 app.post("/profile", function(request, response) {
     db.collection("users").find({}).toArray(function(error, allUsers) {
-        var number = allUsers.length;
+        var date = new Date();
+        var number = date.getTime();
+
         var form = new formidable.IncomingForm();
+        // set max file size for images in bytes (25 x 1024 x 1024)
+        form.maxFileSize = 26214400;
+
         form.parse(request, function(error, fields, files) {
             files.file.name = files.file.name.replace(" ", "");
-            var oldpath = files.file.path;
-            var name = number + files.file.name;
-            var newpath = __dirname + "/public/profileUploads/" + name;
-            db.collection("users").updateOne({
-                "_id": request.session.username
-            }, {
-                $set: {
-                    "profilePicture": name
-                }
-            });
-            fs.rename(oldpath, newpath, function(error) {
-                response.redirect("/home");
-            });
+            // make sure name is not null
+            if (files.file.name) {
+                var oldpath = files.file.path;
+                var name = number + files.file.name;
+                var newpath = __dirname + "/public/profileUploads/" + name;
+                db.collection("users").updateOne({
+                    "_id": request.session.username
+                }, {
+                    $set: {
+                        "profilePicture": name
+                    }
+                });
+
+                var options = {
+                    srcPath: oldpath,
+                    dstPath: newpath,
+                    width: 250
+                };
+
+                imageMagick.resize(options, function(error) {
+                    response.redirect("/home");
+                });
+            }
+            else {
+                db.collection("users").updateOne({
+                    "_id": request.session.username
+                }, {
+                    $set: {
+                        "profilePicture": "blank-profile-icon.png"
+                    }
+                });
+                response.redirect("/home")
+            }
         });
     });
 });
@@ -281,9 +311,11 @@ function postSendInfo(request, response, posts) {
     }
     else {
         var pictures = {};
+        // the magic number is right here do not move this line at all and if you do you will face the wrath of pi because logic
         var counter = 0;
         if (posts.length > 0) {
             for (var i = 0; i < posts.length; i++) {
+                console.log(posts[i].creater)
                 db.collection("users").findOne({
                     "_id": posts[i].creater
                 }, function(error, database) {
@@ -315,7 +347,6 @@ function sendPosts(request, response, posts, pictures, counter) {
             username: request.session.username,
             signedIn: true
         });
-        // the magic number is right here do not move this line at all and if you do you will face the wrath of pi because logic
     }
 }
 
@@ -391,17 +422,28 @@ app.get("/status", function(request, response) {
             if (database.admin) {
                 adminTell = "Admin";
             }
-            response.render("pages/status", {
-                friend: friend,
-                profilePicture: database.profilePicture,
-                lastUpdate: database.lastUpdate,
-                likes: database.likes,
-                dislikes: database.dislikes,
-                admin: adminTell,
-                title: "Status",
-                href: "status.css",
-                username: friend,
-                signedIn: true
+            var yourFriend = request.query.user;
+            var allPeople = {};
+            db.collection("users").find().toArray(function(error, users) {
+                for (var i = 0; i < users.length; i++) {
+                    allPeople[users[i]._id] = users[i];
+                }
+                var level = findDegrees(yourFriend, request, allPeople);
+
+                response.render("pages/status", {
+                    friend: friend,
+                    profilePicture: database.profilePicture,
+                    lastUpdate: database.lastUpdate,
+                    likes: database.likes,
+                    dislikes: database.dislikes,
+                    admin: adminTell,
+                    title: "Status",
+                    href: "status.css",
+                    username: friend,
+                    signedIn: true,
+                    biography: database.biography,
+                    level: level
+                });
             });
         });
     }
@@ -470,7 +512,6 @@ app.post("/deleteFriend", function(request, response) {
             updateFriendsFriend = friendDatabase.friends;
             updateFriends = personDatabase.friends;
 
-            console.log(updateFriends)
             // delete non-friends
             delete updateFriends[friend];
             delete updateFriendsFriend[request.session.username];
@@ -494,68 +535,140 @@ app.post("/deleteFriend", function(request, response) {
     });
 });
 
-app.post("/postImage", function(request, response) {
-    // find what image # to use
-    var imgCounter = 0;
-    db.collection("Posts").find({}).toArray(function(error, allPosts) {
-        imgCounter = allPosts.length;
-
-        var subCounter = imgCounter;
-        var form = new formidable.IncomingForm();
-        form.parse(request, function(error, fields, files) {
-            files.file.name = files.file.name.replace(" ", "");
-            var oldpath = files.file.path;
-            var name = subCounter + files.file.name;
-            var newpath = __dirname + "/public/postUploads/" + name;
-            fs.rename(oldpath, newpath, function(error) {
-                response.redirect("/posts");
-            });
-        });
-    });
-});
-
 function postInfoPicture(request, response) {
-    // find what image # to use
-    var imgCounter = 0;
     db.collection("Posts").find({}).toArray(function(error, allPosts) {
-        imgCounter = allPosts.length;
-
+        var form = new formidable.IncomingForm();
         var tag = "";
-        var subCounter = imgCounter;
         db.collection("Posts").find({}).toArray(function(error, result) {
-            var postCounter = result.length;
             // determine ID
             var date = new Date();
             var month = date.getMonth() + 1;
             var day = date.getDate();
             var year = date.getFullYear();
             var fullDate = month + "/" + day + "/" + year;
-            var img = subCounter + request.body.img;
+            var postCounter = result.length;
 
-            var post = request.body.post;
-            post = filter.clean(post);
-            tag = request.body.tags;
+            form.parse(request, function(error, fields, files) {
+                // set max file size for images in bytes (25 x 1024 x 1024)
+                form.maxFileSize = 26214400;
+                var post = fields.post;
+                post = filter.clean(post);
+                var tag = fields.tag;
+                tag = tag.split(",");
+                for (var i = 0; i < tag.length; i++) {
+                    tag[i] = tag[i].trim(" ");
+                    setTags(tag[i], postCounter);
+                }
 
-            var postInfo = {
-                _id: postCounter,
-                creater: request.session.username,
-                body: post,
-                picture: img,
-                date: fullDate,
-                tag: tag,
-                show: true
-            };
-            db.collection("Posts").insertOne(postInfo, function(error, res) {
-                if (!error) {
-                    response.send(true);
+
+                files.file.name = files.file.name.replace(" ", "");
+                // make sure name is not null
+                var postInfo = {};
+                if (files.file.name) {
+                    var oldpath = files.file.path;
+                    var name = date.getTime() + files.file.name;
+                    var newpath = __dirname + "/public/postUploads/" + name;
+
+                    var options = {
+                        srcPath: oldpath,
+                        dstPath: newpath,
+                        width: 250
+                    };
+
+                    imageMagick.resize(options, function(error) {});
+
+                    var img = name;
+                    postInfo = {
+                        _id: postCounter,
+                        creater: request.session.username,
+                        body: post,
+                        picture: img,
+                        showImg: true,
+                        date: fullDate,
+                        tag: tag,
+                        show: true
+                    };
                 }
                 else {
-                    response.send(false);
+                    postInfo = {
+                        _id: postCounter,
+                        creater: request.session.username,
+                        body: post,
+                        picture: img,
+                        showImg: false,
+                        date: fullDate,
+                        tag: tag,
+                        show: true
+                    };
                 }
+                db.collection("Posts").insertOne(postInfo, function(error, res) {
+                    response.redirect("/posts");
+                });
             });
-            for (var i = 0; i < tag.length; i++) {
-                setTags(tag[i], postCounter);
-            }
         });
     });
+}
+
+app.post("/biography", function(request, response) {
+    var biography = request.body.biography;
+
+    db.collection("users").updateOne({
+        "_id": request.session.username
+    }, {
+        $set: {
+            biography: biography
+        }
+    });
+    response.send("saved");
+});
+
+function findDegrees(friendName, request, allPeople) {
+    var everyoneChecked = allPeople;
+    var yourFriends = allPeople[friendName].friends;
+
+    var level = 0;
+    var running = true;
+    var friends = 0;
+
+    for (var key in yourFriends) {
+        friends++;
+    }
+    // Object.keys(yourFriends).length;
+
+    if (friends > 0) {
+        while (running) {
+            if (!yourFriends.checked) {
+                level++;
+            }
+            for (var key in yourFriends) {
+                if (!everyoneChecked[key].checked) {
+                    // keep friends from looping
+                    everyoneChecked[key].checked = true;
+
+                    for (var key2 in allPeople[key].friends) {
+                        yourFriends[key2] = everyoneChecked[key2];
+                        yourFriends[key2].checked = false;
+                    }
+                    if (key == request.session.username) {
+                        running = false;
+                        return level;
+                    }
+                }
+            }
+            var everyoneCheckedNumber;
+            var checkNumber;
+            for (var key in everyoneChecked) {
+                checkNumber++;
+                if (everyoneChecked[key].checked) {
+                    everyoneCheckedNumber++;
+                }
+            }
+            if (everyoneCheckedNumber == checkNumber) {
+                return Infinity;
+            }
+        }
+    }
+    else {
+        return Infinity;
+    }
 }

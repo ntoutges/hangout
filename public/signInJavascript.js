@@ -15,15 +15,11 @@ function signIn() {
     var password = $("#password").val();
     var username = $("#username").val();
 
-    if (password != "" && username != "") {
+    if (username != "") {
         sendMessage(password, username);
     }
     else if (username == "") {
         $("#warning").text("Please insert a username");
-        $("#signInBox").css("height", "515px");
-    }
-    else {
-        $("#warning").text("Please insert a password");
         $("#signInBox").css("height", "515px");
     }
 }

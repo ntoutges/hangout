@@ -56,20 +56,19 @@ function getInfo(data, success) {
         child.attr("id", "friend" + friendLength);
         child.text(friendLength + ". " + key);
         parent.append(child);
-    }
-    if ((!friends[key][1] && friends[key][2]) || (friends[key][1] && !friends[key][2])) {
-        child.attr("class", "almost");
-        child.click(function() {
-            confirmFriend($(this).text());
+        child.mousedown(function(event) {
+            deleteFriend($(this).text(), event);
         });
+        if ((!friends[key][1] && friends[key][2]) || (friends[key][1] && !friends[key][2])) {
+            child.attr("class", "almost");
+            child.click(function() {
+                confirmFriend($(this).text());
+            });
+        }
+        child.attr("id", key);
+        child.text(friendLength + ". " + key);
+        parent.append(child);
     }
-    child.contextmenu(function() {
-        deleteFriend($(this).text());
-    });
-    child.attr("id", key);
-    child.text(friendLength + ". " + key);
-    parent.append(child);
-
     // tell user they currently have no friends
     if (friendLength == 0) {
         var parentBackUp = $("#section1");
@@ -115,10 +114,18 @@ function reload() {
     window.location.href = "/";
 }
 
-$("#searchLink").click(function() {
+$("#search").keydown(function() {
+    if (event.keyCode == 13) {
+        findFriend();
+    }
+});
+
+$("#searchLink").click(findFriend);
+
+function findFriend() {
     var searchFor = $("#search").val();
     window.location.href = "/search?user=" + searchFor;
-});
+}
 
 function confirmFriend(friend) {
     friend = friend.split(". ", "2");
@@ -129,12 +136,30 @@ function confirmFriend(friend) {
     });
 }
 
-function deleteFriend(friend) {
-    console.log("clicked")
-    friend = friend.split(". ", "2");
-    $.post("/deleteFriend", {
-        friend: friend[1]
-    }, function(data, error) {
-        window.location.reload();
-    });
+function deleteFriend(friend, event) {
+    if (event.buttons == 2) {
+        friend = friend.split(". ", "2");
+        $.post("/deleteFriend", {
+            friend: friend[1]
+        }, function(data, error) {
+            window.location.reload();
+        });
+    }
 }
+
+$("#submitText").click(function() {
+    var biography = $("#biographyText").val();
+
+    $.post("/biography", {
+        biography: biography
+    }, function(response, error) {
+        if (response) {
+            $("#savedHolder").css("display", "inline-block");
+            $("#biographyText").css("height", "400px");
+            setTimeout(function() {
+                $("#savedHolder").css("display", "none");
+            $("#biographyText").css("height", "420px");
+            }, 5000);
+        }
+    });
+});

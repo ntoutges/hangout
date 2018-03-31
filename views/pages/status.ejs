@@ -3,7 +3,7 @@
 <div id="mainPage">
     <div id="sidebar">
         <div id="picture">
-            <img src=/uploads/<%=profilePicture%> id="profilePicture">
+            <img src=/profileUploads/<%=profilePicture%> id="profilePicture">
             </div>
                 <div id="choose">
             </div>
@@ -32,8 +32,14 @@
                 <div id="groups"></div>
             </div>
             <div id="section3" class="sections">
-                <div class="sectionHeaders">Preferences</div>
-                <div id="preferences"></div>
+                <div class="sectionHeaders">Biography</div>
+                <div id="biography">
+                    <div id="biographyText"><%=biography%></div>
+                </div>
+                <div id="seperation">
+                    Degrees of seperation:
+                    <span id="degrees"><%=level%></span>
+                </div>
             </div>
             <div id="section4" class="sections">
                 <div class="sectionHeaders">Misc.</div>

@@ -52,7 +52,6 @@ $("#leaveButton").click(function() {
 
 $("#friend").click(function() {
     var friend = $("#username").text();
-    console.log(friend)
     $.post("/friend", {
             friend: friend
         },
@@ -63,7 +62,7 @@ $("#friend").click(function() {
 
 $("#signOutButton").click(function() {
     $.post("signOut", {},
-        function(data, success) {
+        function(error, success) {
             reloadPage();
         });
 });

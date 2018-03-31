@@ -151,3 +151,28 @@
 .friends {
     cursor: pointer;
 }
+
+#biographyText {
+    height: 420px;
+    width: 100%;
+    font-size: 13px;
+}
+
+#section3 {
+    padding-right: 10px;
+}
+
+#submitText {
+    width: 100%;
+    margin: auto;
+}
+
+#saved {
+    font-size: 20px;
+    display: block;
+    color: green;
+}
+
+#savedHolder {
+    margin:auto;
+}
