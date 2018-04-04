@@ -166,15 +166,12 @@
     border-color: lightgray;
 }
 
-.postPicture {
-    width: 100%;
-}
-
 .pictureHolder {
     width: 80%;
     border-style: solid;
     border-color: lightgray;
     margin: auto;
+    text-align: center;
 }
 
 #submit {
