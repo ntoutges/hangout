@@ -1,26 +1,18 @@
 <%- contentFor("main") %>
 
-<body id="body">
-    <div id="signInBox">
-        <span id="span" class="span">Don't have an account? Click </span>
-        <a href="signUp" id="signUp" class="span">here</a>
-        <span class="span"> to sign-up</span>
-        <div id="signIn">
-            <div id="heading">
-                    <b id="hangouts">Hangout</b>
-                </div>
-            <div class="lables">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" />
+<div id="signInBox">
+    <div id="signIn">
+        <div id="heading">
+                <div id="notice">All Mr Codes students' passwords are the same as on his site</div>
+                <b id="hangouts">Hangout</b>
             </div>
-
-            <div class="lables">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password">
-                <img src="seePassword.png" id="seePassword">
-                <div id="warning"></div>
-                <button id="signInButton">Sign In</button>
-            </div>
+        <div class="lables">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" />
         </div>
+
+        <button id="signInButton">Sign In</button>
+        <div id="warning"></div>
     </div>
-    <script type="text/javascript" src="signInJavascript.js"></script>
+</div>
+<script type="text/javascript" src="signInJavascript.js"></script>

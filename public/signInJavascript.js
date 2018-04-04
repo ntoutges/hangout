@@ -1,7 +1,7 @@
 var $ = window.$;
 $("#signInButton").click(signIn);
 $("#username").keydown(checkKey);
-$("#password").keydown(checkKey);
+//$("#password").keydown(checkKey);
 
 function checkKey(event) {
     if (event.keyCode == 13) {
@@ -11,32 +11,31 @@ function checkKey(event) {
 
 function signIn() {
     $("#warning").text("");
-    $("#signInBox").css("height", "465px");
-    var password = $("#password").val();
+    //var password = $("#password").val();
     var username = $("#username").val();
 
     if (username != "") {
-        sendMessage(password, username);
+        //sendMessage(password, username);
+        sendMessage("", username);
     }
     else if (username == "") {
         $("#warning").text("Please insert a username");
-        $("#signInBox").css("height", "515px");
     }
 }
 
 $("#password").on("input", function() {
-    var password = $("#password").val();
-    if (password) {
+    //var password = $("#password").val();
+    //if (password) {
         $("#seePassword").css("display", "block");
-    }
-    else {
+    //}
+    //else {
         $("#seePassword").css("display", "none");
-    }
+    //}
 });
 
-$("#seePassword").mousedown(function() {
-    $("#password").clone().prop('type', 'text').insertAfter('#password').prev().remove();
-});
+// $("#seePassword").mousedown(function() {
+//     $("#password").clone().prop('type', 'text').insertAfter('#password').prev().remove();
+// });
 $("#seePassword").mouseup(function() {
     $("#password").clone().prop('type', 'password').insertAfter('#password').prev().remove();
 });
@@ -58,18 +57,18 @@ function getInfo(response, success) {
     if (response != "Off") {
         if (response == "incorrect username") {
             warning.text("Incorrect Username");
-            $("#signInBox").css("height", "515px");
         }
         else if (response == "incorrect password") {
-            $("#signInBox").css("height", "515px");
             warning.text("Incorrect Password");
         }
         else if (response == "correct") {
             window.location.href = "home";
         }
+        else if (response == "password") {
+            window.location.href = "password"
+        }
     }
     else {
         warning.text("You Have Been Blocked");
-        $("#signInBox").css("height", "515px");
     }
 }

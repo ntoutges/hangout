@@ -1,17 +1,17 @@
 var $ = window.$;
 
-$("#seePassword").mousedown(function() {
-    $("#password").clone().prop('type', 'text').insertAfter('#password').prev().remove();
-});
-$("#seePassword").mouseup(function() {
-    $("#password").clone().prop('type', 'password').insertAfter('#password').prev().remove();
-});
-$("#seeConfirm").mousedown("mousedown", function() {
-    $("#confirm").clone().prop('type', 'text').insertAfter('#confirm').prev().remove();
-});
-$("#seeConfirm").mouseup(function() {
-    $("#confirm").clone().prop('type', 'password').insertAfter('#confirm').prev().remove();
-});
+// $("#seePassword").mousedown(function() {
+//     $("#password").clone().prop('type', 'text').insertAfter('#password').prev().remove();
+// });
+// $("#seePassword").mouseup(function() {
+//     $("#password").clone().prop('type', 'password').insertAfter('#password').prev().remove();
+// });
+// $("#seeConfirm").mousedown("mousedown", function() {
+//     $("#confirm").clone().prop('type', 'text').insertAfter('#confirm').prev().remove();
+// });
+// $("#seeConfirm").mouseup(function() {
+//     $("#confirm").clone().prop('type', 'password').insertAfter('#confirm').prev().remove();
+// });
 
 var noCoppies = false;
 
@@ -27,32 +27,34 @@ function checkKey(event) {
 }
 
 function signUp() {
-    var password = $("#password").val();
+    // var password = $("#password").val();
     var confirm = $("#confirm").val();
     var username = $("#username").val();
     $("#warning").text = "";
     $("#signUpBox").css("height", "454px");
     $("#signUpBox").css("top", "150px");
-    
-    if (!password || !confirm) {
-        $("#warning").text("Please confirm your password");
-        $("#signUpBox").css("height", "570px");
-        $("#signUpBox").css("top", "50px");
-    }
-    else if (!username) {
+
+    //if (!password || !confirm) {
+    // $("#warning").text("Please confirm your password");
+    // $("#signUpBox").css("height", "570px");
+    // $("#signUpBox").css("top", "50px");
+    //}
+    //else if (!username) {
+    if (!username)
         $("#warning").text("Please confirm your username");
-        $("#signUpBox").css("height", "570px");
-        $("#signUpBox").css("top", "50px");
-    }
-    else if (password != confirm) {
-        $("#warning").text("The two passwords do not match");
-        $("#signUpBox").css("height", "570px");
-        $("#signUpBox").css("top", "50px");
-    }
-    else {
-        createAccount(username, password);
-        noCoppies = true;
-    }
+    $("#signUpBox").css("height", "570px");
+    $("#signUpBox").css("top", "50px");
+    //}
+    // else if (password != confirm) {
+    //     $("#warning").text("The two passwords do not match");
+    //     $("#signUpBox").css("height", "570px");
+    //     $("#signUpBox").css("top", "50px");
+    // }
+    // else {
+    //createAccount(username, password);
+    createAccount(username, "");
+    noCoppies = true;
+    // }
 }
 
 $("#password").on("input", function() {
@@ -96,7 +98,7 @@ function getInfo() {
             $("#warning").text("Account Created");
             $("#signUpBox").css("top", "93px");
             $("#signUpBox").css("height", "512px");
-            setTimeout(function () {
+            setTimeout(function() {
                 window.location.href = "/";
             }, 3000);
         }

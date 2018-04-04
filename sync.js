@@ -9,31 +9,33 @@ mongodb.MongoClient.connect(databaseURL, function(error, database) {
 
 var allStudents = [];
 
-requestPkg.get("https://www.mrcodeswildride.com/students", {}, function(error, response, body) {
-    body = JSON.parse(body);
-    for (var i = 0; i < body.length; i++) {
-        if (allStudents[i] != body[i]._id) {
-            // make info to insert into database
-            var userPostInfo = {
-                _id: body[i]._id,
-                password: "",
-                activity: true,
-                likes: 0,
-                dislikes: 0,
-                lastUpdate: "Never",
-                admin: false,
-                profilePicture: "blank-profile-icon.png",
-                friends: {},
-                groups: [],
-                misc: [],
-                biography: "",
-                student: true
-            };
-            
-            // contact database
-            db.collection("users").insertOne(userPostInfo, function(error, result) {});
-            // add 'all students to local array'
-            allStudents[i] = body[i]._id;
+setInterval(function() {
+    requestPkg.get("https://www.mrcodeswildride.com/students", {}, function(error, response, body) {
+        body = JSON.parse(body);
+        for (var i = 0; i < body.length; i++) {
+            if (allStudents[i] != body[i]._id) {
+                // make info to insert into database
+                var userPostInfo = {
+                    _id: body[i]._id,
+                    password: "",
+                    activity: true,
+                    likes: 0,
+                    dislikes: 0,
+                    lastUpdate: "Never",
+                    admin: false,
+                    profilePicture: "blank-profile-icon.png",
+                    friends: {},
+                    groups: [],
+                    misc: [],
+                    biography: "",
+                    student: true
+                };
+
+                // contact database
+                db.collection("users").insertOne(userPostInfo, function(error, result) {});
+                // add 'all students to local array'
+                allStudents[i] = body[i]._id;
+            }
         }
-    }
-});
+    });
+}, 10000);

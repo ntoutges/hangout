@@ -41,13 +41,21 @@ app.get("/", function(request, response) {
         response.render("pages/signIn", {
             href: "signInStyle.css",
             title: "Sign In",
-            username: request.session.username,
             signedIn: false
         });
     }
     else {
         response.redirect("/home");
     }
+});
+
+// sign in (admin)
+app.get("/password", function(request, response) {
+    response.render("pages/password", {
+        signedIn: false,
+        title: "Password",
+        href: "signInStyle.css"
+    });
 });
 app.post("/info", function(request, response) {
     var username = request.body.username;
@@ -56,15 +64,23 @@ app.post("/info", function(request, response) {
     db.collection("users").findOne({
         "_id": username
     }, function(error, user) {
-        if (user && password == user.password) {
+        //if (user && password == user.password) {
+        if (user) {
             var activity = user.activity;
             if (!activity) {
                 response.send("Off");
             }
-            else {
-                request.session.username = request.body.username;
-                response.send("correct");
-            }
+
+            request.session.username = request.body.username;
+            // set request session username admin to admin or not
+            db.collection("users").findOne({
+                "_id": request.session.username
+            }, function(error, info) {
+                var admin = info.admin;
+                if (admin) {
+                    response.send("password");
+                }
+            });
         }
         else if (!user) {
             response.send("incorrect username");
@@ -77,11 +93,18 @@ app.post("/info", function(request, response) {
 
 // sign up
 app.get("/signUp", function(request, response) {
-    response.render("pages/signUp.ejs", {
-        href: "signUp.css",
-        title: "Sign Up",
-        signedIn: false
-    });
+    if (request.session.admin) {
+        response.render("pages/signUp.ejs", {
+            href: "signUp.css",
+            title: "Sign Up",
+            signedIn: false,
+            admin: request.session.admin
+
+        });
+    }
+    else {
+        response.redirect("/");
+    }
 });
 
 app.post("/create", function(request, response) {
@@ -140,7 +163,8 @@ app.get("/home", function(request, response) {
                     href: "home.css",
                     username: request.session.username,
                     signedIn: true,
-                    biography: biography
+                    biography: biography,
+                    admin: request.session.admin
 
                 });
             }
@@ -153,7 +177,9 @@ app.get("/home", function(request, response) {
                     title: "Admin Home",
                     href: "home.css",
                     username: request.session.username,
-                    signedIn: true
+                    signedIn: true,
+                    biography: biography,
+                    admin: request.session.admin
                 });
             }
         });
@@ -315,7 +341,6 @@ function postSendInfo(request, response, posts) {
         var counter = 0;
         if (posts.length > 0) {
             for (var i = 0; i < posts.length; i++) {
-                console.log(posts[i].creater)
                 db.collection("users").findOne({
                     "_id": posts[i].creater
                 }, function(error, database) {
@@ -345,7 +370,8 @@ function sendPosts(request, response, posts, pictures, counter) {
             title: "Posts",
             href: "posts.css",
             username: request.session.username,
-            signedIn: true
+            signedIn: true,
+            admin: request.session.admin
         });
     }
 }
@@ -401,7 +427,8 @@ app.get("/search", function(request, response) {
                 title: "Search",
                 href: "search.css",
                 username: request.session.username,
-                signedIn: true
+                signedIn: true,
+                admin: request.session.admin
             });
         });
     }
@@ -442,7 +469,8 @@ app.get("/status", function(request, response) {
                     username: friend,
                     signedIn: true,
                     biography: database.biography,
-                    level: level
+                    level: level,
+                    admin: request.session.admin
                 });
             });
         });
@@ -672,3 +700,26 @@ function findDegrees(friendName, request, allPeople) {
         return Infinity;
     }
 }
+
+app.post("/adminPassword", function(request, response) {
+    if (request.session.username) {
+        // set request session username admin to admin or not
+        db.collection("users").findOne({
+            "_id": request.session.username
+        }, function(error, info) {
+            var admin = info.admin;
+            request.session.admin = admin;
+        });
+        var password = request.body.password;
+        db.collection("users").findOne({
+            _id: request.session.username
+        }, function(error, result) {
+            if (password == result.password) {
+                response.send("correct");
+            }
+            else {
+                response.send("incorrect");
+            }
+        });
+    }
+});
