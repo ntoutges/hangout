@@ -62,7 +62,7 @@ function getInfo(response, success) {
             warning.text("Incorrect Password");
         }
         else if (response == "correct") {
-            window.location.href = "home";
+            window.location.href = "/home";
         }
         else if (response == "password") {
             window.location.href = "password"

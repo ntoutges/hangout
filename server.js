@@ -66,21 +66,19 @@ app.post("/info", function(request, response) {
     }, function(error, user) {
         //if (user && password == user.password) {
         if (user) {
+            request.session.username = request.body.username;
             var activity = user.activity;
             if (!activity) {
                 response.send("Off");
             }
-
-            request.session.username = request.body.username;
-            // set request session username admin to admin or not
-            db.collection("users").findOne({
-                "_id": request.session.username
-            }, function(error, info) {
-                var admin = info.admin;
-                if (admin) {
+            else {
+                if (user.admin) {
                     response.send("password");
                 }
-            });
+                else if (username == user._id) {
+                    response.send("correct")
+                }
+            }
         }
         else if (!user) {
             response.send("incorrect username");
@@ -88,6 +86,7 @@ app.post("/info", function(request, response) {
         else {
             response.send("incorrect password");
         }
+
     });
 });
 
