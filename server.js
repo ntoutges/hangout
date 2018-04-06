@@ -448,13 +448,13 @@ app.get("/status", function(request, response) {
             if (database.admin) {
                 adminTell = "Admin";
             }
-            var yourFriend = request.query.user;
             var allPeople = {};
             db.collection("users").find().toArray(function(error, users) {
                 for (var i = 0; i < users.length; i++) {
                     allPeople[users[i]._id] = users[i];
                 }
-                var level = findDegrees(yourFriend, request, allPeople);
+                var level = findDegrees(request.session.username, [friend], 0, allPeople);
+                console.log("Level: " + level);
 
                 response.render("pages/status", {
                     friend: friend,
@@ -649,54 +649,31 @@ app.post("/biography", function(request, response) {
     response.send("saved");
 });
 
-function findDegrees(friendName, request, allPeople) {
-    var everyoneChecked = allPeople;
-    var yourFriends = allPeople[friendName].friends;
-
-    var level = 0;
-    var running = true;
-    var friends = 0;
-
-    for (var key in yourFriends) {
-        friends++;
-    }
-    // Object.keys(yourFriends).length;
-
-    if (friends > 0) {
-        while (running) {
-            if (!yourFriends.checked) {
-                level++;
-            }
-            for (var key in yourFriends) {
-                if (!everyoneChecked[key].checked) {
-                    // keep friends from looping
-                    everyoneChecked[key].checked = true;
-
-                    for (var key2 in allPeople[key].friends) {
-                        yourFriends[key2] = everyoneChecked[key2];
-                        yourFriends[key2].checked = false;
-                    }
-                    if (key == request.session.username) {
-                        running = false;
-                        return level;
-                    }
-                }
-            }
-            var everyoneCheckedNumber;
-            var checkNumber;
-            for (var key in everyoneChecked) {
-                checkNumber++;
-                if (everyoneChecked[key].checked) {
-                    everyoneCheckedNumber++;
-                }
-            }
-            if (everyoneCheckedNumber == checkNumber) {
-                return Infinity;
-            }
+function findDegrees(person, friends, level, allPeople) {
+    var nextLevelFriends = [];
+    for (var i = 0; i < friends.length; i++) {
+        console.log(i)
+        console.log("something " + friends[i])
+        if (allPeople[friends[i]].checked) {
+            continue;
         }
+        
+        console.log("person " + person)
+        if (person == friends[i]) {
+            console.log(level)
+            return level;
+        }
+        
+        for (var key in allPeople[friends[i]].friends) {
+            nextLevelFriends.push(key);
+        }
+        allPeople[friends[i]].checked = true;
+    }
+    if (nextLevelFriends.length == 0) {
+        return Infinity
     }
     else {
-        return Infinity;
+        return findDegrees(person, nextLevelFriends, level + 1, allPeople)
     }
 }
 
