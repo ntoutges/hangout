@@ -454,7 +454,6 @@ app.get("/status", function(request, response) {
                     allPeople[users[i]._id] = users[i];
                 }
                 var level = findDegrees(request.session.username, [friend], 0, allPeople);
-                console.log("Level: " + level);
 
                 response.render("pages/status", {
                     friend: friend,
@@ -652,15 +651,11 @@ app.post("/biography", function(request, response) {
 function findDegrees(person, friends, level, allPeople) {
     var nextLevelFriends = [];
     for (var i = 0; i < friends.length; i++) {
-        console.log(i)
-        console.log("something " + friends[i])
         if (allPeople[friends[i]].checked) {
             continue;
         }
         
-        console.log("person " + person)
         if (person == friends[i]) {
-            console.log(level)
             return level;
         }
         
