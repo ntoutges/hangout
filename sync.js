@@ -2,7 +2,7 @@ var requestPkg = require("request");
 var mongodb = require("mongodb");
 
 var db;
-var databaseURL = "mongodb://user:user@ds159776.mlab.com:59776/forums";
+var databaseURL = "mongodb://studentmrcode:mrcode123@ds163769.mlab.com:63769/hangouts";
 mongodb.MongoClient.connect(databaseURL, function(error, database) {
     db = database;
 });
@@ -10,6 +10,7 @@ mongodb.MongoClient.connect(databaseURL, function(error, database) {
 var allStudents = {};
 
 setInterval(function() {
+    console.log("RUNNING")
     requestPkg.get("https://www.mrcodeswildride.com/students", {}, function(error, response, body) {
         body = JSON.parse(body);
         for (var i = 0; i < body.length; i++) {
@@ -38,4 +39,4 @@ setInterval(function() {
             }
         }
     });
-}, 600000);
+}, 60000);

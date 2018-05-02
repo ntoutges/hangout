@@ -26,7 +26,7 @@ app.use(session({
 }));
 
 var db;
-var databaseURL = "mongodb://user:user@ds159776.mlab.com:59776/forums";
+var databaseURL = "mongodb://studentmrcode:mrcode123@ds163769.mlab.com:63769/hangouts";
 mongodb.MongoClient.connect(databaseURL, function(error, database) {
     db = database;
 
