@@ -2,7 +2,7 @@ var requestPkg = require("request");
 var mongodb = require("mongodb");
 
 var db;
-var databaseURL = "mongodb://studentmrcode:mrcode123@ds159776.mlab.com:59776/forums";
+var databaseURL = "mongodb://user:user@ds159776.mlab.com:59776/forums";
 mongodb.MongoClient.connect(databaseURL, function(error, database) {
     db = database;
 });
