@@ -7,8 +7,9 @@ var session = require("express-session");
 var formidable = require("formidable");
 var fs = require("fs");
 var imageMagick = require("node-imagemagick");
-var Filter = require('bad-words'),
-    filter = new Filter();
+var profanity = require("profanity-middleware");
+
+var filter = profanity.filter;
 
 var staticFiles = express.static(__dirname + "/public");
 app.use(staticFiles);
@@ -167,7 +168,7 @@ app.get("/home", function(request, response) {
 
                 });
             }
-            else {
+            else if (request.session.admin) {
                 response.render("pages/adminHome", {
                     likes: likes,
                     dislikes: dislikes,
@@ -180,6 +181,10 @@ app.get("/home", function(request, response) {
                     biography: biography,
                     admin: request.session.admin
                 });
+            }
+            else {
+                request.session.username = "";
+                response.redirect("/");
             }
         });
     }
@@ -578,7 +583,7 @@ function postInfoPicture(request, response) {
                 // set max file size for images in bytes (25 x 1024 x 1024)
                 form.maxFileSize = 26214400;
                 var post = fields.post;
-                post = filter.clean(post);
+                post = filter(post);
                 var tag = fields.tag;
                 tag = tag.split(",");
                 for (var i = 0; i < tag.length; i++) {
@@ -612,7 +617,10 @@ function postInfoPicture(request, response) {
                         showImg: true,
                         date: fullDate,
                         tag: tag,
-                        show: true
+                        show: true,
+                        likes: 0,
+                        dislikes: 0,
+                        blacklist: {}
                     };
                 }
                 else {
@@ -624,7 +632,10 @@ function postInfoPicture(request, response) {
                         showImg: false,
                         date: fullDate,
                         tag: tag,
-                        show: true
+                        show: true,
+                        likes: 0,
+                        dislikes: 0,
+                        blacklist: {}
                     };
                 }
                 db.collection("Posts").insertOne(postInfo, function(error, res) {
@@ -654,11 +665,11 @@ function findDegrees(person, friends, level, allPeople) {
         if (allPeople[friends[i]].checked) {
             continue;
         }
-        
+
         if (person == friends[i]) {
             return level;
         }
-        
+
         for (var key in allPeople[friends[i]].friends) {
             nextLevelFriends.push(key);
         }
@@ -693,4 +704,42 @@ app.post("/adminPassword", function(request, response) {
             }
         });
     }
+});
+
+// like / dislike someone's post
+app.post("/like", function(request, response) {
+    var like = request.body.like;
+    var number = request.body.number;
+    db.collection("Posts").findOne({
+        "_id": parseInt(number, 10)
+    }, function(error, database) {
+        if (!database.blacklist[request.session.username]) {
+            var blacklist = database.blacklist;
+            blacklist[request.session.username] = true;
+            if (JSON.parse(like)) {
+                // like
+                db.collection("Posts").updateOne({
+                    "_id": parseInt(number, 10)
+                }, {
+                    $set: {
+                        "likes": database.likes + 1,
+                        "blacklist": blacklist
+                    }
+                });
+
+            }
+            else {
+                // dislike
+                db.collection("Posts").updateOne({
+                    "_id": parseInt(number, 10)
+                }, {
+                    $set: {
+                        "dislikes": database.dislikes + 1,
+                        "blacklist": blacklist
+                    }
+                });
+            }
+            response.send("reload");
+        }
+    });
 });

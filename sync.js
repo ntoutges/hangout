@@ -10,7 +10,6 @@ mongodb.MongoClient.connect(databaseURL, function(error, database) {
 var allStudents = {};
 
 setInterval(function() {
-    console.log("RUNNING")
     requestPkg.get("https://www.mrcodeswildride.com/students", {}, function(error, response, body) {
         body = JSON.parse(body);
         for (var i = 0; i < body.length; i++) {

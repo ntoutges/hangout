@@ -128,3 +128,22 @@ $("#signOutButton").click(function() {
 function reload() {
     window.location.href = "/";
 }
+
+$(".like").click(function() {
+    like(true, this);
+});
+$(".dislike").click(function() {
+    like(false, this);
+});
+
+function like(liked, thisOne) {
+    var number = thisOne.getAttribute("number");
+    $.post("/like", {
+        like: liked,
+        number: number
+    }, function(data, success) {
+        if (data == "reload") {
+            window.location.reload();
+        }
+    });
+}

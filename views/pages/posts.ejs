@@ -33,8 +33,8 @@
                 <img src=/profileUploads/<%=pictures[posts[i].creater]%> class="header image">
                 <div class="header">
                     Creator:
-                    <%if (posts[i].student == true) {%>
-                        <span>[student]</span>
+                    <%if (posts[i].admin == true) {%>
+                        <span>[admin] </span>
                     <%}%>
                     <%=posts[i].creater%>
                 </div>
@@ -53,6 +53,12 @@
                 <%}%>
             </div>
             <div class="lastUpdate"><%=posts[i].date%></div>
+            <div class="likes">
+                <span class="postLikes"><%=posts[i].likes%></span>
+                <img src="like.png" class="like" number=<%=i%>>
+                <span class="postDislikes"><%=posts[i].dislikes%></span>
+                <img src="dislike.png" class="dislike" number=<%=i%>>
+            </div>
         </div>
     <% } %>
     </div>

@@ -20,6 +20,7 @@
     "mongodb": "^2.2.25",
     "node-imagemagick": "^0.1.8",
     "nodemon": "^1.13.3",
+    "profanity-middleware": "^0.3.0",
     "request": "^2.85.0"
   }
 }
