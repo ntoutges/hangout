@@ -300,7 +300,11 @@ app.get("/posts", function(request, response) {
 });
 app.post("/post", function(request, response) {
     if (request.session.username) {
-        postInfoPicture(request, response);
+        db.collection("users").findOne({
+            "_id": request.session.username
+        }, function(error, database) {
+            postInfoPicture(request, response);
+        });
     }
     else {
         response.send("reload");
@@ -569,16 +573,24 @@ app.post("/deleteFriend", function(request, response) {
 function postInfoPicture(request, response) {
     db.collection("Posts").find({}).toArray(function(error, allPosts) {
         var form = new formidable.IncomingForm();
-        var tag = "";
-        db.collection("Posts").find({}).toArray(function(error, result) {
+        db.collection("Posts").find({}).sort({
+            "likes": 1
+        }).toArray(function(error, result) {
             // determine ID
             var date = new Date();
             var month = date.getMonth() + 1;
             var day = date.getDate();
             var year = date.getFullYear();
             var fullDate = month + "/" + day + "/" + year;
-            var postCounter = result.length;
-
+            var postCounter = result.length - 1;
+            if (result.length == 0) {
+                postCounter = 0;
+            }
+            else {
+                console.log(postCounter)
+                console.log(result)
+                postCounter = result[postCounter]._id + 1;
+            }
             form.parse(request, function(error, fields, files) {
                 // set max file size for images in bytes (25 x 1024 x 1024)
                 form.maxFileSize = 26214400;
@@ -590,7 +602,6 @@ function postInfoPicture(request, response) {
                     tag[i] = tag[i].trim(" ");
                     setTags(tag[i], postCounter);
                 }
-
 
                 files.file.name = files.file.name.replace(" ", "");
                 // make sure name is not null
@@ -638,6 +649,7 @@ function postInfoPicture(request, response) {
                         blacklist: {}
                     };
                 }
+                console.log(postCounter)
                 db.collection("Posts").insertOne(postInfo, function(error, res) {
                     response.redirect("/posts");
                 });
@@ -691,17 +703,17 @@ app.post("/adminPassword", function(request, response) {
         }, function(error, info) {
             var admin = info.admin;
             request.session.admin = admin;
-        });
-        var password = request.body.password;
-        db.collection("users").findOne({
-            _id: request.session.username
-        }, function(error, result) {
-            if (password == result.password) {
-                response.send("correct");
-            }
-            else {
-                response.send("incorrect");
-            }
+            var password = request.body.password;
+            db.collection("users").findOne({
+                _id: request.session.username
+            }, function(error, result) {
+                if (password == result.password) {
+                    response.send("correct");
+                }
+                else {
+                    response.send("incorrect");
+                }
+            });
         });
     }
 });
