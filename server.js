@@ -587,9 +587,13 @@ function postInfoPicture(request, response) {
                 postCounter = 0;
             }
             else {
-                console.log(postCounter)
-                console.log(result)
-                postCounter = result[postCounter]._id + 1;
+                var highestNum = 0;
+                for (var i = 0; i <= postCounter; i++) {
+                    if (i > highestNum) {
+                        highestNum = i;
+                    }
+                }
+                postCounter = highestNum + 1;
             }
             form.parse(request, function(error, fields, files) {
                 // set max file size for images in bytes (25 x 1024 x 1024)

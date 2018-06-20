@@ -1,7 +1,5 @@
 var $ = window.$;
 
-//$("#submit").click(submit); // THIS IS THE PROBLEM, I THINK
-
 var allPosts = document.getElementsByClassName("posts");
 var post = document.getElementsByClassName("post");
 for (var i = 0; i < allPosts.length; i++) {
@@ -21,6 +19,14 @@ function searchTags() {
     writeTags();
 }
 
+setInterval(function() {
+    $.get("/tag", {
+        tags: tags.join(",")
+    }, function(data, success) {
+        showPosts(data, success);
+    });
+}, 200);
+
 function writeTags() {
     $("#tags").text("");
     for (var i = 0; i < tags.length; i++) {
@@ -33,11 +39,6 @@ function writeTags() {
         shownTagsContainer.append(shownTags);
         $("#tags").append(shownTagsContainer);
     }
-    $.get("/tag", {
-        tags: tags.join(",")
-    }, function(data, success) {
-        showPosts(data, success);
-    });
 }
 
 function showPosts(data, success) {
@@ -65,7 +66,7 @@ function showPosts(data, success) {
                 "<img src=/profileUploads/" + picture + " class= 'header image'>" +
                 "<div class=header> Creator: " + creater + "</div>" +
                 "</div>" +
-                "<div class=post>" + body + "</div>" + 
+                "<div class=post>" + body + "</div>" +
                 "</div>");
             var img = "";
             if (postImage) {
@@ -96,14 +97,6 @@ function tagClicked() {
     id = parseInt(id, 10);
     tags.splice(id, 1);
     writeTags();
-}
-
-$("#tag").keydown(detectKey);
-
-function detectKey(event) {
-    if (event.keyCode == 13) {
-        submit();
-    }
 }
 
 $("#searchTag").keydown(detectKeySearch);
