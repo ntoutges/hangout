@@ -50,6 +50,8 @@ function showPosts(data, success) {
             var creater = posts[i].creater;
             var published = posts[i].date;
             var body = posts[i].body;
+            var likes = posts[i].likes;
+            var dislikes = posts[i].dislikes;
             // escape body
             body = body.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -83,13 +85,23 @@ function showPosts(data, success) {
             var tagElement = $("<div class=tagHolder>" +
                 "<div class=postTags>" + allTags + "</div>" +
                 "</div>");
+            var likeDislike = $("<div class=lastUpdate>" + published + "</div> <div class=likes<<span class=postLikes>" +
+                likes + "</span> <img src=like.png class=like number=" + i + "><span class=postDislikes>" + dislikes +
+                "</span><img src=dislike.png class=dislike number=" + i + "></div>");
 
             // put divs in divs
             $("#postHolder").append(postHolder);
             postHolder.append(img);
             postHolder.append(tagElement);
+            postHolder.append(likeDislike)
         }
     }
+    $(".like").click(function() {
+        like(true, this);
+    });
+    $(".dislike").click(function() {
+        like(false, this);
+    });
 }
 
 function tagClicked() {
@@ -118,12 +130,9 @@ $("#signOutButton").click(function() {
         });
 });
 
-$(".like").click(function() {
-    like(true, this);
-});
-$(".dislike").click(function() {
-    like(false, this);
-});
+// function reload() {
+//     window.location.href = "/";
+// }
 
 function like(liked, thisOne) {
     var number = thisOne.getAttribute("number");
@@ -132,7 +141,7 @@ function like(liked, thisOne) {
         number: number
     }, function(data, success) {
         if (data == "reload") {
-            // window.location.reload();
+            window.location.reload();
         }
     });
 }
