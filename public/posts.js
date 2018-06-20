@@ -114,13 +114,9 @@ $("#searchLink").click(function() {
 $("#signOutButton").click(function() {
     $.post("signOut", {},
         function(data, success) {
-            reload();
+            // reload();
         });
 });
-
-function reload() {
-    window.location.href = "/";
-}
 
 $(".like").click(function() {
     like(true, this);
@@ -136,7 +132,7 @@ function like(liked, thisOne) {
         number: number
     }, function(data, success) {
         if (data == "reload") {
-            window.location.reload();
+            // window.location.reload();
         }
     });
 }
