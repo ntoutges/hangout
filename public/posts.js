@@ -25,7 +25,7 @@ setInterval(function() {
     }, function(data, success) {
         showPosts(data, success);
     });
-}, 200);
+}, 500);
 
 function writeTags() {
     $("#tags").text("");
