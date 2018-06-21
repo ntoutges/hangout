@@ -60,7 +60,7 @@ function showPosts(data, success) {
             var tags = [];
 
             for (var j = 0; j < posts[i].tag.length; j++) {
-                tags.push(posts[i].tag[j]);
+                tags.push(posts[i].tag[j].replace(/</g, "&lt;").replace(/>/g, "&gt;"));
             }
             // create containing divs
             var postHolder = $("<div class=posts>" +
