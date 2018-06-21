@@ -55,7 +55,7 @@ function showPosts(data, success) {
             // escape body
             body = body.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-            var picture = users[i].profilePicture;
+            var picture = users[i];
             var postImage = posts[i].picture;
             var tags = [];
 
@@ -70,6 +70,7 @@ function showPosts(data, success) {
                 "</div>" +
                 "<div class=post>" + body + "</div>" +
                 "</div>");
+                
             var img = "";
             if (postImage) {
                 img = $("<div class=pictureHolder>" +
@@ -126,13 +127,13 @@ $("#searchLink").click(function() {
 $("#signOutButton").click(function() {
     $.post("signOut", {},
         function(data, success) {
-            // reload();
+            reload();
         });
 });
 
-// function reload() {
-//     window.location.href = "/";
-// }
+function reload() {
+    window.location.href = "/";
+}
 
 function like(liked, thisOne) {
     var number = thisOne.getAttribute("number");

@@ -262,28 +262,44 @@ app.get("/tag", function(request, response) {
     if (userTags[0] != "") {
         db.collection("Posts").find({
             tag: { $in: userTags }
+        }).sort({
+            _id: 1
         }).toArray(function(error, allPosts, user) {
             sendPost(response, allPosts);
         });
     }
     else {
-        db.collection("Posts").find({}).toArray(function(error, allPosts) {
+        db.collection("Posts").find().sort({
+            _id: 1
+        }).toArray(function(error, allPosts) {
             sendPost(response, allPosts);
         });
     }
 });
 
 function sendPost(response, allPosts) {
-    var user = [];
+    var user = {};
+    var placeholder = [];
     var counter = 0;
     for (var i = 0; i < allPosts.length; i++) {
         db.collection("users").findOne({
             "_id": allPosts[i].creater
         }, function(error, database) {
-            user.push(database);
+            placeholder.push(database);
             counter++;
-
             if (counter == allPosts.length) {
+                for (var j = 0; j < placeholder.length; j++) {
+                    if (placeholder[j]._id == allPosts[j].creater) {
+                        user[j] = placeholder[j].profilePicture
+                    }
+                    else {
+                        for (var k = 0; k < placeholder.length; k++) {
+                            if (placeholder[k]._id == allPosts[j].creater) {
+                                user[j] = placeholder[k].profilePicture;
+                            }
+                        }
+                    }
+                }
                 var totalPosts = [allPosts, user];
                 response.send(totalPosts);
             }
