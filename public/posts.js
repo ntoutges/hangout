@@ -18,7 +18,6 @@ function searchTags() {
     tags.push(tag);
     writeTags();
 }
-
 setInterval(function() {
     $.get("/tag", {
         tags: tags.join(",")
@@ -44,6 +43,7 @@ function writeTags() {
 function showPosts(data, success) {
     var posts = data[0];
     var users = data[1];
+    var admin = data[2];
     $("#postHolder").text("");
     for (var i = posts.length - 1; i >= 0; i--) {
         if (posts[i].show) {
@@ -70,7 +70,7 @@ function showPosts(data, success) {
                 "</div>" +
                 "<div class=post>" + body + "</div>" +
                 "</div>");
-                
+
             var img = "";
             if (postImage) {
                 img = $("<div class=pictureHolder>" +
@@ -86,15 +86,25 @@ function showPosts(data, success) {
             var tagElement = $("<div class=tagHolder>" +
                 "<div class=postTags>" + allTags + "</div>" +
                 "</div>");
-            var likeDislike = $("<div class=lastUpdate>" + published + "</div> <div class=likes<<span class=postLikes>" +
-                likes + "</span> <img src=like.png class=like number=" + i + "><span class=postDislikes>" + dislikes +
-                "</span><img src=dislike.png class=dislike number=" + i + "></div>");
-
+            var likeDislike = "";
+            if (admin) {
+                likeDislike = $("<div class=lastUpdate>" + published + "</div> <div class=likes><span class=postLikes>" +
+                    likes + "</span> <img src=like.png class=like number=" + i + "><span class=postDislikes>" + dislikes +
+                    "</span><img src=dislike.png class=dislike number=" + i + "><button class=delete id=" + i +">DELETE</button></div>");
+            }
+            else {
+                likeDislike = $("<div class=lastUpdate>" + published + "</div> <div class=likes><span class=postLikes>" +
+                    likes + "</span> <img src=like.png class=like number=" + i + "><span class=postDislikes>" + dislikes +
+                    "</span><img src=dislike.png class=dislike number=" + i + "></div>");
+            }
             // put divs in divs
             $("#postHolder").append(postHolder);
             postHolder.append(img);
             postHolder.append(tagElement);
-            postHolder.append(likeDislike)
+            postHolder.append(likeDislike);
+            $(".delete").click(function() {
+                deletePost($(this).attr("id"));
+            });
         }
     }
     $(".like").click(function() {
@@ -144,5 +154,12 @@ function like(liked, thisOne) {
         if (data == "reload") {
             window.location.reload();
         }
+    });
+}
+
+function deletePost(number) {
+    number = parseInt(number, 10);
+    $.post("/delete", {
+        "postNum": number
     });
 }

@@ -265,19 +265,19 @@ app.get("/tag", function(request, response) {
         }).sort({
             _id: 1
         }).toArray(function(error, allPosts, user) {
-            sendPost(response, allPosts);
+            sendPost(request, response, allPosts);
         });
     }
     else {
         db.collection("Posts").find().sort({
             _id: 1
         }).toArray(function(error, allPosts) {
-            sendPost(response, allPosts);
+            sendPost(request, response, allPosts);
         });
     }
 });
 
-function sendPost(response, allPosts) {
+function sendPost(request, response, allPosts) {
     var user = {};
     var placeholder = [];
     var counter = 0;
@@ -300,10 +300,14 @@ function sendPost(response, allPosts) {
                         }
                     }
                 }
-                var totalPosts = [allPosts, user];
+                var totalPosts = [allPosts, user, request.session.admin];
                 response.send(totalPosts);
             }
         });
+    }
+    if (allPosts.length == 0) {
+        var totalPosts = [allPosts, user, request.session.admin];
+        response.send(totalPosts);
     }
 }
 
@@ -492,8 +496,7 @@ app.get("/status", function(request, response) {
                     username: friend,
                     signedIn: true,
                     biography: database.biography,
-                    level: level,
-                    admin: request.session.admin
+                    level: level
                 });
             });
         });
@@ -590,7 +593,7 @@ function postInfoPicture(request, response) {
     db.collection("Posts").find({}).toArray(function(error, allPosts) {
         var form = new formidable.IncomingForm();
         db.collection("Posts").find({}).sort({
-            "likes": 1
+            "_id": 1
         }).toArray(function(error, result) {
             // determine ID
             var date = new Date();
@@ -669,7 +672,6 @@ function postInfoPicture(request, response) {
                         blacklist: {}
                     };
                 }
-                console.log(postCounter)
                 db.collection("Posts").insertOne(postInfo, function(error, res) {
                     response.redirect("/posts");
                 });
@@ -773,5 +775,12 @@ app.post("/like", function(request, response) {
             }
             response.send("reload");
         }
+    });
+});
+
+app.post("/delete", function(request, response) {
+    var id = parseInt(request.body.postNum, 10);
+    db.collection("Posts").find().sort({ "_id": 1 }).toArray(function(error, database) {
+        db.collection("Posts").deleteOne({ _id: database[id]._id }, function(error, data) {});
     });
 });
