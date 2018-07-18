@@ -23,6 +23,7 @@ setInterval(function() {
         tags: tags.join(",")
     }, function(data, success) {
         showPosts(data, success);
+        console.log(data[2])
     });
 }, 500);
 

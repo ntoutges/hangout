@@ -290,7 +290,7 @@ function sendPost(request, response, allPosts) {
             if (counter == allPosts.length) {
                 for (var j = 0; j < placeholder.length; j++) {
                     if (placeholder[j]._id == allPosts[j].creater) {
-                        user[j] = placeholder[j].profilePicture
+                        user[j] = placeholder[j].profilePicture;
                     }
                     else {
                         for (var k = 0; k < placeholder.length; k++) {
