@@ -106,7 +106,7 @@ function showPosts(data, success) {
             postHolder.append(tagElement);
             postHolder.append(likeDislike);
             $(".delete").click(function() {
-                deletePost($(this).attr("id"), counter);
+                deletePost($(this).attr("id"));
             });
         }
     }
@@ -159,9 +159,13 @@ function like(liked, thisOne) {
         }
     });
 }
-
-function deletePost(number, i) {
-    if (i == counter) {
+var send = true;
+function deletePost(number) {
+    if (send) {
+        send = false;
+        setTimeout(function() {
+            send = true;
+        }, 500);
         number = parseInt(number, 10);
         $.post("/delete", {
             "postNum": number

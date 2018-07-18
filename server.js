@@ -606,13 +606,7 @@ function postInfoPicture(request, response) {
                 postCounter = 0;
             }
             else {
-                var highestNum = 0;
-                for (var i = 0; i <= postCounter; i++) {
-                    if (i > highestNum) {
-                        highestNum = i;
-                    }
-                }
-                postCounter = highestNum + 1;
+                postCounter = result[postCounter]._id + 1;
             }
             form.parse(request, function(error, fields, files) {
                 // set max file size for images in bytes (25 x 1024 x 1024)
@@ -779,6 +773,7 @@ app.post("/like", function(request, response) {
 });
 
 app.post("/delete", function(request, response) {
+    console.log("HERE")
     var id = parseInt(request.body.postNum, 10);
     db.collection("Posts").find().sort({ "_id": 1 }).toArray(function(error, database) {
         db.collection("Posts").deleteOne({ _id: database[id]._id }, function(error, data) {});
