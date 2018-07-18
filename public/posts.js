@@ -23,6 +23,7 @@ setInterval(function() {
         tags: tags.join(",")
     }, function(data, success) {
         showPosts(data, success);
+        console.log("NOW")
     });
 }, 500);
 
@@ -39,8 +40,10 @@ function writeTags() {
         $("#tags").append(shownTagsContainer);
     }
 }
+var counter = 0;
 
 function showPosts(data, success) {
+    counter++;
     var posts = data[0];
     var users = data[1];
     var admin = data[2];
@@ -90,7 +93,7 @@ function showPosts(data, success) {
             if (admin) {
                 likeDislike = $("<div class=lastUpdate>" + published + "</div> <div class=likes><span class=postLikes>" +
                     likes + "</span> <img src=like.png class=like number=" + i + "><span class=postDislikes>" + dislikes +
-                    "</span><img src=dislike.png class=dislike number=" + i + "><button class=delete id=" + i +">DELETE</button></div>");
+                    "</span><img src=dislike.png class=dislike number=" + i + "><button class=delete id=" + i + ">DELETE</button></div>");
             }
             else {
                 likeDislike = $("<div class=lastUpdate>" + published + "</div> <div class=likes><span class=postLikes>" +
@@ -103,7 +106,7 @@ function showPosts(data, success) {
             postHolder.append(tagElement);
             postHolder.append(likeDislike);
             $(".delete").click(function() {
-                deletePost($(this).attr("id"));
+                deletePost($(this).attr("id"), counter);
             });
         }
     }
@@ -157,9 +160,11 @@ function like(liked, thisOne) {
     });
 }
 
-function deletePost(number) {
-    number = parseInt(number, 10);
-    $.post("/delete", {
-        "postNum": number
-    });
+function deletePost(number, i) {
+    if (i == counter) {
+        number = parseInt(number, 10);
+        $.post("/delete", {
+            "postNum": number
+        });
+    }
 }
