@@ -40,10 +40,8 @@ function writeTags() {
         $("#tags").append(shownTagsContainer);
     }
 }
-var counter = 0;
 
 function showPosts(data, success) {
-    counter++;
     var posts = data[0];
     var users = data[1];
     var admin = data[2];

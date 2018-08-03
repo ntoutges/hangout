@@ -257,7 +257,7 @@ app.get("/information", function(request, response) {
 var userTags;
 app.get("/tag", function(request, response) {
     userTags = request.query.tags;
-    userTags = userTags.split(",");
+    userTags = userTags.split(" ");
 
     if (userTags[0] != "") {
         db.collection("Posts").find({
@@ -331,32 +331,34 @@ app.post("/post", function(request, response) {
     }
 });
 
-function setTags(tag, counter) {
-    db.collection("tags").findOne({
-        "_id": tag
-    }, function(error, tagResult) {
+function setTags(tag, counter, post) {
+    if (post.length > 1) {
+        db.collection("tags").findOne({
+            "_id": tag
+        }, function(error, tagResult) {
 
-        if (tagResult) {
-            var postTags = tagResult.posts;
-            postTags[counter] = true;
+            if (tagResult) {
+                var postTags = tagResult.posts;
+                postTags[counter] = true;
 
-            db.collection("tags").updateOne({
-                "_id": tag
-            }, {
-                $set: {
-                    "posts": postTags
-                }
-            });
-        }
-        else {
-            var information = {
-                "_id": tag,
-                posts: {}
-            };
-            information.posts[counter] = true;
-            db.collection("tags").insertOne(information, function(error, database) { if (error) { console.log(error) } });
-        }
-    });
+                db.collection("tags").updateOne({
+                    "_id": tag
+                }, {
+                    $set: {
+                        "posts": postTags
+                    }
+                });
+            }
+            else {
+                var information = {
+                    "_id": tag,
+                    posts: {}
+                };
+                information.posts[counter] = true;
+                db.collection("tags").insertOne(information, function(error, database) { if (error) { console.log(error) } });
+            }
+        });
+    }
 }
 
 function postSendInfo(request, response, posts) {
@@ -617,7 +619,7 @@ function postInfoPicture(request, response) {
                 tag = tag.split(",");
                 for (var i = 0; i < tag.length; i++) {
                     tag[i] = tag[i].trim(" ");
-                    setTags(tag[i], postCounter);
+                    setTags(tag[i], postCounter, post);
                 }
 
                 files.file.name = files.file.name.replace(" ", "");
@@ -666,9 +668,14 @@ function postInfoPicture(request, response) {
                         blacklist: {}
                     };
                 }
-                db.collection("Posts").insertOne(postInfo, function(error, res) {
+                if (post.length > 1) {
+                    db.collection("Posts").insertOne(postInfo, function(error, res) {
+                        response.redirect("/posts");
+                    });
+                }
+                else {
                     response.redirect("/posts");
-                });
+                }
             });
         });
     });
@@ -773,7 +780,6 @@ app.post("/like", function(request, response) {
 });
 
 app.post("/delete", function(request, response) {
-    console.log("HERE")
     var id = parseInt(request.body.postNum, 10);
     db.collection("Posts").find().sort({ "_id": 1 }).toArray(function(error, database) {
         db.collection("Posts").deleteOne({ _id: database[id]._id }, function(error, data) {});
