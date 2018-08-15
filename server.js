@@ -46,7 +46,18 @@ app.get("/", function(request, response) {
         });
     }
     else {
-        response.redirect("/home");
+        db.collection("users").findOne({
+            "_id": request.session.username
+        }, function(error, data) {
+            var admin = data.admin;
+            if (admin && request.session.admin || !admin && !request.session.admin) {
+                response.redirect("/home");
+            }
+            else {
+                request.session.username = false;
+                response.redirect("/")
+            }
+        });
     }
 });
 
@@ -725,12 +736,12 @@ app.post("/adminPassword", function(request, response) {
             "_id": request.session.username
         }, function(error, info) {
             var admin = info.admin;
-            request.session.admin = admin;
             var password = request.body.password;
             db.collection("users").findOne({
                 _id: request.session.username
             }, function(error, result) {
                 if (password == result.password) {
+                    request.session.admin = admin;
                     response.send("correct");
                 }
                 else {
