@@ -148,14 +148,24 @@
     cursor: pointer;
 }
 
-.friends {
+.almost:hover {
+    white-space: nowrap;
+    background-color: red;
+}
+
+.friends:hover {
     cursor: pointer;
+    background-color: red;
 }
 
 #biographyText {
     height: 420px;
     width: 100%;
     font-size: 13px;
+}
+
+#section1 {
+    overflow: scroll;
 }
 
 #section3 {
@@ -174,5 +184,5 @@
 }
 
 #savedHolder {
-    margin:auto;
+    margin: auto;
 }

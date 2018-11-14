@@ -1,0 +1,19 @@
+<%- contentFor("main") %>
+<input type="text" placeholder="reason for ban" id="reason">
+    <select id="select">
+    <option value="none">none</option>
+    <option value="1 h">1 Hour</option>
+    <option value="2 h">2 Hours</option>
+    <option value="8 h">8 Hours</option>
+    <option value="1 d">1 Day</option>
+    <option value="2 d">2 Days</option>
+    <option value="7 d">1 Week</option>
+    <option value="14 d">2 Weeks</option>
+    <option value="1 m">1 Month</option>
+    <option value="2 m">2 Months</option>
+    <option value="12 m">1 Year</option>
+    <option value="1 i">Forever</option>
+</select>
+<button id="submit">Submit</button>
+<div id="warning"></div>
+<script type="text/javascript" src="ban.js"></script>

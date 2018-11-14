@@ -7,39 +7,17 @@ for (var i = 0; i < allPosts.length; i++) {
     post[i].style.width = width + "px";
 }
 
-// add searching tags
-var tags = [];
-$("#submitTag").click(searchTags);
+$("#searchFriends").click(function() {
+    $("#searchTag").val("/*friends*/");
+});
 
-function searchTags() {
-    $("#postHolder").text("");
-    var tag = $("#searchTag").val();
-    $("#searchTag").val("");
-    tags.push(tag);
-    writeTags();
-}
 setInterval(function() {
     $.get("/tag", {
-        tags: tags.join(",")
+        tags: $("#searchTag").val()
     }, function(data, success) {
         showPosts(data, success);
-        console.log("NOW")
     });
 }, 500);
-
-function writeTags() {
-    $("#tags").text("");
-    for (var i = 0; i < tags.length; i++) {
-        var shownTags = $("<div></div>");
-        var shownTagsContainer = $("<div></div>");
-        shownTags.text("#" + tags[i]);
-        shownTags.addClass("userTags");
-        shownTags.attr("id", i);
-        shownTags.click(tagClicked);
-        shownTagsContainer.append(shownTags);
-        $("#tags").append(shownTagsContainer);
-    }
-}
 
 function showPosts(data, success) {
     var posts = data[0];
@@ -116,20 +94,6 @@ function showPosts(data, success) {
     });
 }
 
-function tagClicked() {
-    var id = $(this).attr("id");
-    id = parseInt(id, 10);
-    tags.splice(id, 1);
-    writeTags();
-}
-
-$("#searchTag").keydown(detectKeySearch);
-
-function detectKeySearch(event) {
-    if (event.keyCode == 13) {
-        searchTags();
-    }
-}
 $("#searchLink").click(function() {
     var searchFor = $("#search").val();
     window.location.href = "/search?user=" + searchFor;

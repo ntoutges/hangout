@@ -21,6 +21,7 @@
     "node-imagemagick": "^0.1.8",
     "nodemon": "^1.13.3",
     "profanity-middleware": "^0.3.0",
-    "request": "^2.85.0"
+    "request": "^2.85.0",
+    "socket.io": "^2.1.1"
   }
 }

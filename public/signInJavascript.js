@@ -26,10 +26,10 @@ function signIn() {
 $("#password").on("input", function() {
     //var password = $("#password").val();
     //if (password) {
-        $("#seePassword").css("display", "block");
+    $("#seePassword").css("display", "block");
     //}
     //else {
-        $("#seePassword").css("display", "none");
+    $("#seePassword").css("display", "none");
     //}
 });
 
@@ -53,7 +53,6 @@ function sendMessage(password, username) {
 // get response from the server
 function getInfo(response, success) {
     var warning = $("#warning");
-
     if (response != "Off") {
         if (response == "incorrect username") {
             warning.text("Incorrect Username");
@@ -65,10 +64,20 @@ function getInfo(response, success) {
             window.location.href = "/home";
         }
         else if (response == "password") {
-            window.location.href = "password"
+            window.location.href = "password";
         }
     }
     else {
-        warning.text("You Have Been Blocked");
+        $.post("/unban", {
+            timedOut: false,
+            username: $("#username").val()
+        }, function(ban, success) {
+            if (ban == true) {
+                warning.text("You Have Been Blocked");
+            }
+            else {
+                window.location.href = "/home";
+            }
+        });
     }
 }

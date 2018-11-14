@@ -1,5 +1,4 @@
 var $ = window.$;
-
 // set profile height
 var profile = $("#profilePicture");
 profile.on("load", function() {
@@ -9,6 +8,8 @@ profile.on("load", function() {
 if (profile && profile.clientHeight) {
     changeHeight(profile.clientHeight, profile.clientWidth);
 }
+// in the case image is already loaded
+changeHeight(profile.clientHeight, profile.clientWidth);
 
 function changeHeight(height, width) {
     if (height > width) {
@@ -27,7 +28,7 @@ getInformation();
 
 // get info about person
 function getInformation() {
-    $.get("information", {},
+    $.post("information", {},
         function(data, success) {
             getInfo(data, success);
         });
@@ -59,7 +60,11 @@ function getInfo(data, success) {
         child.mousedown(function(event) {
             deleteFriend($(this).text(), event);
         });
-        if ((!friends[key][1] && friends[key][2]) || (friends[key][1] && !friends[key][2])) {
+        // Dave: this kind of statement is very hard to read and error prone
+        // what is friends[key][1], etc, and all these ands and ors can be confusing
+        // make separate variables (or functions) for the different parts with meaningful names
+        // then the resulting logical expression will read a lot more like English
+        if (friends[key][1] && !friends[key][2]) {
             child.attr("class", "almost");
             child.click(function() {
                 confirmFriend($(this).text());
@@ -114,19 +119,6 @@ function reload() {
     window.location.href = "/";
 }
 
-$("#search").keydown(function() {
-    if (event.keyCode == 13) {
-        findFriend();
-    }
-});
-
-$("#searchLink").click(findFriend);
-
-function findFriend() {
-    var searchFor = $("#search").val();
-    window.location.href = "/search?user=" + searchFor;
-}
-
 function confirmFriend(friend) {
     friend = friend.split(". ", "2");
     $.post("/confirmFriend", {
@@ -137,6 +129,7 @@ function confirmFriend(friend) {
 }
 
 function deleteFriend(friend, event) {
+    event.preventDefault();
     if (event.buttons == 2) {
         friend = friend.split(". ", "2");
         $.post("/deleteFriend", {
@@ -158,7 +151,7 @@ $("#submitText").click(function() {
             $("#biographyText").css("height", "400px");
             setTimeout(function() {
                 $("#savedHolder").css("display", "none");
-            $("#biographyText").css("height", "420px");
+                $("#biographyText").css("height", "420px");
             }, 5000);
         }
     });

@@ -19,6 +19,9 @@
                 <span id="allDislikes"><%=dislikes%></span>
                 <div id="friendHolder">
                     <button id="friend">Friend</button>
+                    <% if (viewingAdmin) {%>
+                        <button id="ban"><%=personBanned%></button>
+                    <%}%>
                 </div>
             </div>
         </div>

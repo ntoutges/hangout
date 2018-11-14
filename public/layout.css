@@ -1,0 +1,16 @@
+#alert {
+    background-color: grey;
+    position: absolute;
+    border-style: solid;
+    display: none;
+    width: 200px;
+}
+
+.buttons {
+    width: 98px;
+}
+#message {
+    text-align: center;
+    display: block;
+    font-size: 20px;
+}

@@ -18,7 +18,7 @@ setInterval(function() {
                 var userPostInfo = {
                     _id: body[i]._id,
                     password: "",
-                    activity: true,
+                    activity: { active: true, reason: "", until: null, times: 0 },
                     likes: 0,
                     dislikes: 0,
                     lastUpdate: "Never",

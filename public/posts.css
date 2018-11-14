@@ -78,10 +78,8 @@
 #searchTags {
     float: left;
     border-style: solid;
-    width: 260px;
-    height: 200px;
+    width: 200px;
     margin-top: 10px;
-    overflow-y: scroll;
 }
 
 .userTags:hover {
@@ -97,6 +95,7 @@
 }
 
 #explanation {
+    width: 200px;
     font-weight: bold;
     text-align: center;
     background-color: blue;
@@ -179,6 +178,17 @@
 #submit {
     width: 85px;
 }
+
 .likes {
     display: inline-block;
+}
+
+#searchTag {
+    margin: auto;
+    width: 100px;
+}
+
+#noPosts {
+    font-weight: bold;
+    text-align: center;
 }

@@ -3,12 +3,21 @@
 
 <head>
     <script type="text/javascript" src="jquery.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <link rel="icon" href="pi-pie.png" type="image/x-icon" />
     <link rel="stylesheet" href=<%=href%> type="text/css" />
+    <link rel="stylesheet" href=layout.css type="text/css" />
     <title>Hangout - <%=title%></title>
 </head>
 
 <body id="body">
+    <div id="alert">
+        <div id="message"></div>
+        <div id="buttons">
+            <button id="b1" class="buttons"></button>
+            <button id="b2" class="buttons"></button>
+        </div>
+    </div>
     <%if (signedIn) {%>
         <div id="linkHolder">
             <a href="/home" id="homeLink" class="links">Home</a>
@@ -25,6 +34,7 @@
     <div id="containerMain">
         <%- defineContent("main") %>
     </div>
+    <script type="text/javascript" src="layout.js"></script>
 </body>
 
 </html>

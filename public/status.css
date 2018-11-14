@@ -152,7 +152,7 @@
 }
 
 #friend {
-    width: 100%;
+    display: inline-block;
     font-weight: bold;
     background-color: green;
     border-style: none;
@@ -238,6 +238,7 @@
 }
 
 #biographyText {
+    word-wrap: break-word;
     border-color: gray;
     border-style: solid;
     border-width: 1px;
@@ -247,6 +248,21 @@
 }
 
 #seperation {
+    white-space: nowrap;
     margin-top: 6px;
     font-size: 20px;
+}
+
+#ban {
+    display: inline-block;
+    font-weight: bold;
+    background-color: red;
+    border-style: none;
+    font-size: 30px;
+    height: 40px;
+    transition-duration: 0.6s;
+}
+#ban:hover {
+    background-color: orange;
+    transition-duration: 0.6s;
 }

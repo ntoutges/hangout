@@ -8,6 +8,7 @@ var formidable = require("formidable");
 var fs = require("fs");
 var imageMagick = require("node-imagemagick");
 var profanity = require("profanity-middleware");
+var socketio = require("socket.io");
 
 var filter = profanity.filter;
 
@@ -21,19 +22,21 @@ var urlencoded = bodyParser.urlencoded({
 });
 app.use(urlencoded);
 app.use(session({
-    secret: "nothingToSeeHereBecauseNoReason",
+    secret: "nothingToSeeHereBecauseNoReasonAndIWillContinueToMakeThisStringLongerSoNoOneCanSomehowGetIntoMySystemAndSoItIsLongerThanMelaniesAndSheWillNeverKnowThatBecauseSheCannotSeeThisSecretMessage",
     resave: false,
     saveUninitialized: false
 }));
 
 var db;
+var io;
 var databaseURL = "mongodb://studentmrcode:mrcode123@ds163769.mlab.com:63769/hangouts";
 mongodb.MongoClient.connect(databaseURL, function(error, database) {
     db = database;
 
-    app.listen(process.env.PORT || 3006, function() {
+    var server = app.listen(process.env.PORT || 3006, function() {
         console.log("app started");
     });
+    io = socketio.listen(server);
 });
 
 // sign in
@@ -79,7 +82,7 @@ app.post("/info", function(request, response) {
         //if (user && password == user.password) {
         if (user) {
             request.session.username = request.body.username;
-            var activity = user.activity;
+            var activity = user.activity.active;
             if (!activity) {
                 response.send("Off");
             }
@@ -125,10 +128,15 @@ app.post("/create", function(request, response) {
     }, function(error, user) {
         if (!user) {
             var password = request.body.password;
+            // Dave: my suggestion is don't set all of the default values when creating new user, just omit them
+            // the reason is that if you do this, every time you add or modify a property, you need to remember to
+            // come here and update this accordinngly, which is just asking for trouble
+            // instead, if your code where you access various properties, have a check for an omitted value and
+            // treat it like the default value
             var information = {
                 "_id": username,
                 password: password,
-                activity: true,
+                activity: { active: true, reason: "", until: null, times: 0 },
                 likes: 0,
                 dislikes: 0,
                 lastUpdate: "Never",
@@ -244,15 +252,20 @@ app.post("/profile", function(request, response) {
                         "profilePicture": "blank-profile-icon.png"
                     }
                 });
-                response.redirect("/home")
+                response.redirect("/home");
             }
         });
     });
 });
 
-app.get("/information", function(request, response) {
+app.post("/information", function(request, response) {
+    var user = request.session.username;
+    var secondUser = request.body.user;
+    if (secondUser) {
+        user = request.body.user;
+    }
     db.collection("users").findOne({
-        "_id": request.session.username
+        "_id": user
     }, function(error, database) {
         var friends = database.friends;
         var groups = database.groups;
@@ -268,16 +281,52 @@ app.get("/information", function(request, response) {
 var userTags;
 app.get("/tag", function(request, response) {
     userTags = request.query.tags;
-    userTags = userTags.split(" ");
-
-    if (userTags[0] != "") {
+    var initializers = userTags.split("*");
+    if (initializers[0] == "/" && initializers[2] == "/") {
+        // run special commands from user
+        if (initializers[1] == "friends") {
+            db.collection("users").findOne({
+                "_id": request.session.username
+            }, function(error, user) {
+                var counter = 0;
+                var allPosts2 = [];
+                if (Object.keys(user.friends).length > 0) {
+                    for (var key in user.friends) {
+                        db.collection("users").findOne({
+                            _id: key
+                        }, function(error, user2) {
+                            db.collection("Posts").find({
+                                "creater": user2._id
+                            }).sort({
+                                _id: 1
+                            }).toArray(function(error, allPosts) {
+                                counter++;
+                                for (var i = 0; i < allPosts.length; i++) {
+                                    allPosts2.push(allPosts[i]);
+                                }
+                                if (counter >= Object.keys(user.friends).length) {
+                                    allPosts2 = sortAllPosts(allPosts2);
+                                    sendPost(request, response, allPosts2);
+                                }
+                            });
+                        });
+                    }
+                }
+                else {
+                    sendPost(request, response, []);
+                }
+            });
+        }
+    }
+    else if (userTags[0] != "") {
         db.collection("Posts").find({
-            tag: { $in: userTags }
+            "tag": new RegExp(".*" + userTags + ".*", "i")
         }).sort({
             _id: 1
-        }).toArray(function(error, allPosts, user) {
+        }).toArray(function(error, allPosts) {
             sendPost(request, response, allPosts);
         });
+        // the magic number is right here do not move this line at all and if you do you will face the wrath of pi because logic
     }
     else {
         db.collection("Posts").find().sort({
@@ -287,6 +336,22 @@ app.get("/tag", function(request, response) {
         });
     }
 });
+
+function sortAllPosts(allPosts) {
+    var repeatFor = allPosts.length;
+    var allPosts2 = [];
+    for (var i = 0; i < repeatFor; i++) {
+        var highestId = { post: { _id: -1 } };
+        for (var j = 0; j < allPosts.length; j++) {
+            if (parseInt(allPosts[j]._id, 10) > parseInt(highestId.post._id, 10)) {
+                highestId = { post: allPosts[j], num: j };
+            }
+        }
+        allPosts.splice(highestId.num, 1);
+        allPosts2.push(highestId.post);
+    }
+    return allPosts2;
+}
 
 function sendPost(request, response, allPosts) {
     var user = {};
@@ -298,6 +363,8 @@ function sendPost(request, response, allPosts) {
         }, function(error, database) {
             placeholder.push(database);
             counter++;
+            // Dave: I haven't looked at this code in detail, but it looks a bit "pyramidy",
+            // which is a recipe for hard-to-track bugs, perhaps break this up into functions
             if (counter == allPosts.length) {
                 for (var j = 0; j < placeholder.length; j++) {
                     if (placeholder[j]._id == allPosts[j].creater) {
@@ -378,7 +445,6 @@ function postSendInfo(request, response, posts) {
     }
     else {
         var pictures = {};
-        // the magic number is right here do not move this line at all and if you do you will face the wrath of pi because logic
         var counter = 0;
         if (posts.length > 0) {
             for (var i = 0; i < posts.length; i++) {
@@ -399,8 +465,10 @@ function postSendInfo(request, response, posts) {
 
 
 app.post("/signOut", function(request, response) {
-    request.session.destroy();
-    response.send("response");
+    if (request.body.person == request.session.username || !request.body.person) {
+        request.session.destroy();
+        response.send("response");
+    }
 });
 
 function sendPosts(request, response, posts, pictures, counter) {
@@ -425,6 +493,9 @@ app.post("/friend", function(request, response) {
         "_id": friend
     }, function(error, database) {
         var allFriends = database.friends;
+        // Dave: don't use arrays for things like this, use objects
+        // objects have the benefit of being easily extendable, and properties
+        // have names, which makes it easier to read and less error prone
         allFriends[request.session.username] = [request.session.username, true, false];
 
         db.collection("users").updateOne({
@@ -452,6 +523,7 @@ app.post("/friend", function(request, response) {
 
 // search for people to friend
 app.get("/search", function(request, response) {
+    // ERROR IS HERE NOW PLEASE REMEMBER THIS ERROR ERROR ERROR ERROR ERROR
     if (request.session.username) {
         var user = request.query.user;
         var value = ".*" + user + ".*";
@@ -479,7 +551,6 @@ app.get("/search", function(request, response) {
 });
 
 // status on possible friend
-
 app.get("/status", function(request, response) {
     if (request.session.username) {
         var friend = request.query.user;
@@ -496,7 +567,10 @@ app.get("/status", function(request, response) {
                     allPeople[users[i]._id] = users[i];
                 }
                 var level = findDegrees(request.session.username, [friend], 0, allPeople);
-
+                var banned = "Ban";
+                if (!database.activity.active) {
+                    banned = "Unban";
+                }
                 response.render("pages/status", {
                     friend: friend,
                     profilePicture: database.profilePicture,
@@ -509,7 +583,9 @@ app.get("/status", function(request, response) {
                     username: friend,
                     signedIn: true,
                     biography: database.biography,
-                    level: level
+                    level: level,
+                    viewingAdmin: request.session.admin,
+                    personBanned: banned
                 });
             });
         });
@@ -711,21 +787,19 @@ function findDegrees(person, friends, level, allPeople) {
         if (allPeople[friends[i]].checked) {
             continue;
         }
-
         if (person == friends[i]) {
             return level;
         }
-
         for (var key in allPeople[friends[i]].friends) {
             nextLevelFriends.push(key);
         }
         allPeople[friends[i]].checked = true;
     }
     if (nextLevelFriends.length == 0) {
-        return Infinity
+        return Infinity;
     }
     else {
-        return findDegrees(person, nextLevelFriends, level + 1, allPeople)
+        return findDegrees(person, nextLevelFriends, level + 1, allPeople);
     }
 }
 
@@ -752,40 +826,46 @@ app.post("/adminPassword", function(request, response) {
     }
 });
 
-// like / dislike someone's post
+// like or dislike someone's post
 app.post("/like", function(request, response) {
     var like = request.body.like;
     var number = request.body.number;
-    db.collection("Posts").findOne({
-        "_id": parseInt(number, 10)
-    }, function(error, database) {
-        if (!database.blacklist[request.session.username]) {
-            var blacklist = database.blacklist;
-            blacklist[request.session.username] = true;
-            if (JSON.parse(like)) {
-                // like
-                db.collection("Posts").updateOne({
-                    "_id": parseInt(number, 10)
-                }, {
-                    $set: {
-                        "likes": database.likes + 1,
-                        "blacklist": blacklist
-                    }
-                });
-
+    db.collection("Posts").find().sort({
+        _id: 1
+    }).toArray(function(error, databaseArray) {
+        var database = databaseArray[number];
+        var notInBlacklist = true;
+        for (var i = 0; i < Object.keys(database.blacklist).length; i++) {
+            if (Object.keys(database.blacklist)[i] == request.session.username) {
+                notInBlacklist = false;
             }
-            else {
-                // dislike
-                db.collection("Posts").updateOne({
-                    "_id": parseInt(number, 10)
-                }, {
-                    $set: {
-                        "dislikes": database.dislikes + 1,
-                        "blacklist": blacklist
-                    }
-                });
+        }
+        var likes = database.likes;
+        var dislikes = database.dislikes;
+        if (like == "true") {
+            likes++;
+            if (!notInBlacklist) {
+                dislikes--;
             }
-            response.send("reload");
+        }
+        else {
+            dislikes++;
+            if (!notInBlacklist) {
+                likes--;
+            }
+        }
+        if (database.blacklist[request.session.username] != like || notInBlacklist) {
+            var blackList = database.blacklist;
+            blackList[request.session.username] = like;
+            db.collection("Posts").updateOne({
+                "_id": database._id
+            }, {
+                $set: {
+                    "blacklist": blackList,
+                    "likes": likes,
+                    "dislikes": dislikes
+                }
+            });
         }
     });
 });
@@ -794,5 +874,102 @@ app.post("/delete", function(request, response) {
     var id = parseInt(request.body.postNum, 10);
     db.collection("Posts").find().sort({ "_id": 1 }).toArray(function(error, database) {
         db.collection("Posts").deleteOne({ _id: database[id]._id }, function(error, data) {});
+    });
+});
+
+// banning people
+app.get("/ban", function(request, response) {
+    if (request.session.username && request.session.admin) {
+        var user = request.query.user;
+        response.render("pages/ban", {
+            href: "ban.css",
+            title: "Ban " + user,
+            signedIn: false,
+            banning: user
+        });
+    }
+    else {
+        response.redirect("/");
+    }
+});
+
+// return here
+app.post("/banPerson", function(request, response) {
+    var reason = request.body.reason;
+    var time = request.body.time;
+    // calculate time until ban removed
+    var today = incrimentTime(time);
+    // find person to be banned
+    var person = request.body.username;
+    db.collection("users").findOne({
+        _id: person
+    }, function(error, data) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            var amountOfTimesBanned = data.activity.times;
+            db.collection("users").updateOne({
+                "_id": person
+            }, {
+                $set: {
+                    activity: { active: false, reason: reason, until: today, times: amountOfTimesBanned + 1 }
+                }
+            });
+            io.emit("ban", { person: person, reason: reason });
+            response.send("home");
+        }
+    });
+});
+
+function incrimentTime(time) {
+    var today = new Date();
+    time = time.split(" ");
+    // multiplier is time in hours
+    if (time[1] == "h") {
+        today.setHours(today.getHours() + time[0]);
+    }
+    else if (time[1] == "d") {
+        today.setDate(today.getDate() + time[0]);
+    }
+    else if (time[1] == "m") {
+        today.setMonth(today.getMonth() + time[0]);
+    }
+    else if (time[1] == "i") {
+        today.setFullYear(Infinity);
+    }
+    return today;
+}
+
+app.post("/unban", function(request, response) {
+    db.collection("users").findOne({
+        _id: request.body.username
+    }, function(error, user) {
+        var date = new Date();
+        var unBanDate = user.activity.until;
+        if (!unBanDate) {
+            unBanDate = date;
+        }
+        if (request.body.timedOut == false || date.getTime() >= unBanDate.getTime()) {
+            var username = request.session.username;
+            db.collection("users").findOne({
+                "_id": username
+            }, function(error, user) {
+                db.collection("users").updateOne({
+                    "_id": username
+                }, {
+                    $set: {
+                        activity: { active: true, reason: "", until: "", times: user.activity.times }
+                    }
+                });
+            });
+            if (request.body.timedOut) {
+                response.send(false);
+            }
+        }
+        else if (request.body.timedOut) {
+            request.session.destroy();
+            response.send(true);
+        }
     });
 });
