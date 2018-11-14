@@ -147,7 +147,7 @@ function getInfo(data, success) {
 
 $("#ban").on("click", function() {
     if ($(this).text() == "Ban") {
-        window.location.replace("https://forums-nicholastmrcode.c9users.io/ban?user=" + $("#username").text());
+        window.location.replace("ban?user=" + $("#username").text());
     }
     else {
         var alertBox = $("#alert");
