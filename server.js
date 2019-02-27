@@ -58,7 +58,7 @@ app.get("/", function(request, response) {
             }
             else {
                 request.session.username = false;
-                response.redirect("/")
+                response.redirect("/");
             }
         });
     }
@@ -72,6 +72,7 @@ app.get("/password", function(request, response) {
         href: "signInStyle.css"
     });
 });
+
 app.post("/info", function(request, response) {
     var username = request.body.username;
     var password = request.body.password;
@@ -122,39 +123,41 @@ app.get("/signUp", function(request, response) {
 });
 
 app.post("/create", function(request, response) {
-    var username = request.body.username;
-    db.collection("users").findOne({
-        "_id": username
-    }, function(error, user) {
-        if (!user) {
-            var password = request.body.password;
-            // Dave: my suggestion is don't set all of the default values when creating new user, just omit them
-            // the reason is that if you do this, every time you add or modify a property, you need to remember to
-            // come here and update this accordinngly, which is just asking for trouble
-            // instead, if your code where you access various properties, have a check for an omitted value and
-            // treat it like the default value
-            var information = {
-                "_id": username,
-                password: password,
-                activity: { active: true, reason: "", until: null, times: 0 },
-                likes: 0,
-                dislikes: 0,
-                lastUpdate: "Never",
-                admin: false,
-                profilePicture: "blank-profile-icon.png",
-                friends: {},
-                groups: [],
-                misc: [],
-                biography: "",
-                student: false
-            };
-            db.collection("users").insertOne(information, function(error, result) {});
-            response.send(true);
-        }
-        else {
-            response.send(false);
-        }
-    });
+    if (request.session.admin && request.session.username) {
+        var username = request.body.username;
+        db.collection("users").findOne({
+            "_id": username
+        }, function(error, user) {
+            if (!user) {
+                var password = request.body.password;
+                // Dave: my suggestion is don't set all of the default values when creating new user, just omit them
+                // the reason is that if you do this, every time you add or modify a property, you need to remember to
+                // come here and update this accordinngly, which is just asking for trouble
+                // instead, if your code where you access various properties, have a check for an omitted value and
+                // treat it like the default value
+                var information = {
+                    "_id": username,
+                    password: password,
+                    activity: { active: true, reason: "", until: null, times: 0 },
+                    likes: 0,
+                    dislikes: 0,
+                    lastUpdate: "Never",
+                    admin: false,
+                    profilePicture: "blank-profile-icon.png",
+                    friends: {},
+                    groups: [],
+                    misc: [],
+                    biography: "",
+                    student: false
+                };
+                db.collection("users").insertOne(information, function(error, result) {});
+                response.send(true);
+            }
+            else {
+                response.send(false);
+            }
+        });
+    }
 });
 
 // home page
