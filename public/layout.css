@@ -14,3 +14,11 @@
     display: block;
     font-size: 20px;
 }
+
+#search {
+    background-color: white;
+}
+
+#search:hover {
+    cursor: auto;
+}

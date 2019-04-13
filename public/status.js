@@ -145,29 +145,24 @@ function getInfo(data, success) {
     }
 }
 
-$("#ban").on("click", function() {
+$("#ban").click(function() {
     if ($(this).text() == "Ban") {
         window.location.replace("ban?user=" + $("#username").text());
     }
     else {
-        var alertBox = $("#alert");
-        alertBox.css("display", "block");
-        $("#message").text("Are you sure you would like to unban this person?");
-        $("#b1").text("Yes");
-        $("#b2").text("No");
-        var pageWidth = $("#body").width();
-        $("#alert").css("left", ((pageWidth / 2)) + "px");
-        $("#alert").css("top", "100px");
-        $("#b1").on("click", unBan(true));
-        $("#b2").on("click", unBan(false));
+        var val = confirm("Are you sure you would like to unban this person?");
+        unBan(val)
     }
 });
 
 function unBan(sure) {
-    $("#alert").css("display", "none");
     if (sure) {
         $.post("/unban", {
             username: $("#username").text()
+        }, function(success, data) {
+            if (data) {
+                window.location.reload();
+            }
         });
     }
 }

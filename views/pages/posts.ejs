@@ -13,9 +13,8 @@
         <div id="createPost">
             <div id="container">
                 <div>
-                    <textarea name="post" rows="10" cols="100" maxlength="1070" id="post"></textarea>
+                    <textarea name="post" rows="10" cols="100" maxlength="1070" id="post" placeholder="use '#' to add tags"></textarea>
                     <div id="error"></div>
-                    <input type="text" name="tag" id="tag" class="nextTo" placeholder="Seperate tags with a space" maxlength=100>
                     
                     <input type="file" name="file" id="file">
                     <input type="submit" id="submit" class="nextTo">
@@ -26,40 +25,37 @@
     <div id="postHolder">
         <%for (var i = posts.length - 1; i >= 0; i--) {%>
             <div class="posts">
-            <div class="postHeader">
-                <img src=/profileUploads/<%=pictures[posts[i].creater]%> class="header image">
-                <div class="header">
-                    Creator:
-                    <%if (posts[i].admin == true) {%>
-                        <span>[admin] </span>
-                    <%}%>
-                    <%=posts[i].creater%>
+                <div class="postHeader">
+                    <img src=/profileUploads/<%=pictures[posts[i].creater]%> class="header image">
+                    <div class="header">
+                        Creator:
+                        <%if (posts[i].admin == true) {%>
+                            <span>[admin] </span>
+                        <%}%>
+                        <%=posts[i].creater%>
+                    </div>
                 </div>
-            </div>
-            <div class="post"><%=posts[i].body%></div>
-            <%if(posts[i].picture) {%>
-                <div class="pictureHolder">
-                        <img src=/postUploads/<%=posts[i].picture%> class="postPicture">
-                </div>
-            <%}%>
-            <div class="tagHolder">
-                <%for (var j = 0; j < posts[i].tag.length; j++) {%>
-                    <%if (posts[i].tag[j] != "") {%>
-                        <div class="postTags">#<%=posts[i].tag[j]%></div>
-                    <%}%>
+                <%for (var j = 0; j < posts[i].body.length; j++) {%>
+                    <div class="post <%=posts[i].body[j].type%>"><%=posts[i].body[j].text%></div>
                 <%}%>
+                <%if(posts[i].picture) {%>
+                    <div class="pictureHolder">
+                        <img src=/postUploads/<%=posts[i].picture%> class="postPicture">
+                    </div>
+                <%}%>
+                <div id="footer">
+                    <div class="lastUpdate"><%=posts[i].date%></div>
+                    <div class="likes">
+                        <span class="postLikes"><%=posts[i].likes%></span>
+                        <img src="like.png" class="like" number=<%=i%>>
+                        <span class="postDislikes"><%=posts[i].dislikes%></span>
+                        <img src="dislike.png" class="dislike" number=<%=i + 1%>>
+                    </div>
+                    <%if (admin) {%>
+                        <button id="delete">DELETE</button>
+                    <%}%>
+                </div>
             </div>
-            <div class="lastUpdate"><%=posts[i].date%></div>
-            <div class="likes">
-                <span class="postLikes"><%=posts[i].likes%></span>
-                <img src="like.png" class="like" number=<%=i%>>
-                <span class="postDislikes"><%=posts[i].dislikes%></span>
-                <img src="dislike.png" class="dislike" number=<%=i + 1%>>
-            </div>
-            <%if (admin) {%>
-                <button id="delete">DELETE</button>
-            <%}%>
-        </div>
-    <% } %>
+        <% } %>
     </div>
     <script type="text/javascript" src="posts.js"></script>

@@ -28,27 +28,31 @@ function showPosts(data, success) {
         if (posts[i].show) {
             var creater = posts[i].creater;
             var published = posts[i].date;
-            var body = posts[i].body;
+            var array = posts[i].body;
             var likes = posts[i].likes;
             var dislikes = posts[i].dislikes;
-            // escape body
-            body = body.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
+            // escape body text
+            var body = $("<div></div>");
+            for (var j = 0; j < array.length; j++) {
+                let text = array[j].text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                var div = $("<div class=post>" + text + "</div>");
+                div.addClass(array[j].type);
+                if (array[j].type == "tag") {
+                    div.click(setTag);
+                }
+                body.append(div);
+            }
+            
             var picture = users[i];
             var postImage = posts[i].picture;
-            var tags = [];
 
-            for (var j = 0; j < posts[i].tag.length; j++) {
-                tags.push(posts[i].tag[j].replace(/</g, "&lt;").replace(/>/g, "&gt;"));
-            }
             // create containing divs
             var postHolder = $("<div class=posts>" +
                 "<div class=postHeader>" +
                 "<img src=/profileUploads/" + picture + " class= 'header image'>" +
                 "<div class=header> Creator: " + creater + "</div>" +
-                "</div>" +
-                "<div class=post>" + body + "</div>" +
                 "</div>");
+            postHolder.append(body);
 
             var img = "";
             if (postImage) {
@@ -56,15 +60,6 @@ function showPosts(data, success) {
                     "<img src=/postUploads/" + postImage + " class=postPicture>" +
                     "</div>");
             }
-            var allTags = "";
-            for (var j = 0; j < tags.length; j++) {
-                if (tags[j] != "") {
-                    allTags += "#" + tags[j] + " ";
-                }
-            }
-            var tagElement = $("<div class=tagHolder>" +
-                "<div class=postTags>" + allTags + "</div>" +
-                "</div>");
             var likeDislike = "";
             if (admin) {
                 likeDislike = $("<div class=lastUpdate>" + published + "</div> <div class=likes><span class=postLikes>" +
@@ -79,7 +74,6 @@ function showPosts(data, success) {
             // put divs in divs
             $("#postHolder").append(postHolder);
             postHolder.append(img);
-            postHolder.append(tagElement);
             postHolder.append(likeDislike);
             $(".delete").click(function() {
                 deletePost($(this).attr("id"));
@@ -92,6 +86,15 @@ function showPosts(data, success) {
     $(".dislike").click(function() {
         like(false, this);
     });
+}
+
+function setTag() {
+    var tag = $(this).text();
+    
+    // remove '#' symbol
+    tag = tag.substring(1, tag.length);
+    
+    $("#searchTag").val(tag);
 }
 
 $("#searchLink").click(function() {
@@ -122,6 +125,7 @@ function like(liked, thisOne) {
     });
 }
 var send = true;
+
 function deletePost(number) {
     if (send) {
         send = false;

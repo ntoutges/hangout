@@ -68,8 +68,7 @@ function getInfo(response, success) {
         }
     }
     else {
-        $.post("/unban", {
-            timedOut: false,
+        $.post("/banQuery", {
             username: $("#username").val()
         }, function(ban, success) {
             if (ban == true) {

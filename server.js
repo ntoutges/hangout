@@ -53,7 +53,7 @@ app.get("/", function(request, response) {
             "_id": request.session.username
         }, function(error, data) {
             var admin = data.admin;
-            if (admin && request.session.admin || !admin && !request.session.admin) {
+            if ((admin && request.session.admin) || (!admin && !request.session.admin)) {
                 response.redirect("/home");
             }
             else {
@@ -311,6 +311,7 @@ app.get("/tag", function(request, response) {
                                     allPosts2 = sortAllPosts(allPosts2);
                                     sendPost(request, response, allPosts2);
                                 }
+                                // the magic number is right here do not move this line at all and if you do you will face the wrath of pi because logic
                             });
                         });
                     }
@@ -321,7 +322,7 @@ app.get("/tag", function(request, response) {
             });
         }
     }
-    else if (userTags[0] != "") {
+    else if (userTags != "") {
         db.collection("Posts").find({
             "tag": new RegExp(".*" + userTags + ".*", "i")
         }).sort({
@@ -329,7 +330,6 @@ app.get("/tag", function(request, response) {
         }).toArray(function(error, allPosts) {
             sendPost(request, response, allPosts);
         });
-        // the magic number is right here do not move this line at all and if you do you will face the wrath of pi because logic
     }
     else {
         db.collection("Posts").find().sort({
@@ -412,34 +412,32 @@ app.post("/post", function(request, response) {
     }
 });
 
-function setTags(tag, counter, post) {
-    if (post.length > 1) {
-        db.collection("tags").findOne({
-            "_id": tag
-        }, function(error, tagResult) {
+function setTags(tag, counter) {
+    db.collection("tags").findOne({
+        "_id": tag
+    }, function(error, tagResult) {
 
-            if (tagResult) {
-                var postTags = tagResult.posts;
-                postTags[counter] = true;
+        if (tagResult) {
+            var postTags = tagResult.posts;
+            postTags[counter] = true;
 
-                db.collection("tags").updateOne({
-                    "_id": tag
-                }, {
-                    $set: {
-                        "posts": postTags
-                    }
-                });
-            }
-            else {
-                var information = {
-                    "_id": tag,
-                    posts: {}
-                };
-                information.posts[counter] = true;
-                db.collection("tags").insertOne(information, function(error, database) { if (error) { console.log(error) } });
-            }
-        });
-    }
+            db.collection("tags").updateOne({
+                "_id": tag
+            }, {
+                $set: {
+                    "posts": postTags
+                }
+            });
+        }
+        else {
+            var information = {
+                "_id": tag,
+                posts: {}
+            };
+            information.posts[counter] = true;
+            db.collection("tags").insertOne(information, function(error, database) { if (error) { console.log(error) } });
+        }
+    });
 }
 
 function postSendInfo(request, response, posts) {
@@ -520,8 +518,8 @@ app.post("/friend", function(request, response) {
             $set: {
                 "friends": allFriends
             }
-        })
-    })
+        });
+    });
 });
 
 // search for people to friend
@@ -705,14 +703,16 @@ function postInfoPicture(request, response) {
                 form.maxFileSize = 26214400;
                 var post = fields.post;
                 post = filter(post);
-                var tag = fields.tag;
-                tag = tag.split(",");
-                for (var i = 0; i < tag.length; i++) {
-                    tag[i] = tag[i].trim(" ");
-                    setTags(tag[i], postCounter, post);
+                var tags = findTags(post);
+                var newPost = combineIntoArray(post, tags);
+                files.file.name = files.file.name.replace(" ", "");
+
+                // set tags in collection
+                for (var i = 0; i < tags.length; i++) {
+                    if (post.length > 1 || files.file.name)
+                        setTags(tags[i], postCounter);
                 }
 
-                files.file.name = files.file.name.replace(" ", "");
                 // make sure name is not null
                 var postInfo = {};
                 if (files.file.name) {
@@ -732,11 +732,11 @@ function postInfoPicture(request, response) {
                     postInfo = {
                         _id: postCounter,
                         creater: request.session.username,
-                        body: post,
+                        body: newPost,
                         picture: img,
                         showImg: true,
+                        tag: tags,
                         date: fullDate,
-                        tag: tag,
                         show: true,
                         likes: 0,
                         dislikes: 0,
@@ -747,18 +747,18 @@ function postInfoPicture(request, response) {
                     postInfo = {
                         _id: postCounter,
                         creater: request.session.username,
-                        body: post,
+                        body: newPost,
                         picture: img,
                         showImg: false,
+                        tag: tags,
                         date: fullDate,
-                        tag: tag,
                         show: true,
                         likes: 0,
                         dislikes: 0,
                         blacklist: {}
                     };
                 }
-                if (post.length > 1) {
+                if (post.length >= 1 || files.file.name) {
                     db.collection("Posts").insertOne(postInfo, function(error, res) {
                         response.redirect("/posts");
                     });
@@ -769,6 +769,51 @@ function postInfoPicture(request, response) {
             });
         });
     });
+}
+
+function findTags(txt) {
+    var sectors = txt.split("#");
+    // make sure first word is not a tag
+    if (txt[0] != "#") {
+        sectors.splice(0, 1);
+    }
+    let repeatFor = sectors.length;
+    for (var i = 0; i < repeatFor; i++) {
+        sectors[i] = sectors[i].split(" ")[0]; // filter out any part that is not connected and take only first part
+        if (sectors[i].trim() == "#") {
+            sectors.splice(i, 1);
+        }
+    }
+    return sectors;
+}
+
+function combineIntoArray(evens, odds) {
+    var evensSplit = evens.split("#");
+    var post = [];
+    for (var i = 0; i < evensSplit.length; i++) {
+        if (odds[i]) {
+            if (evens[0] == "#") {
+                let obj = { type: "tag", text: "#" + odds[i] };
+                post.push(obj);
+                let element = evensSplit[i].replace(odds[i], "");
+                let obj2 = { type: "text", text: element };
+                post.push(obj2);
+            }
+            else {
+                var i2 = i;
+                if (i >= 1) {
+                    i2--;
+                }
+                post.tagFirst = false;
+                let element = evensSplit[i].replace(odds[i2], "");
+                let obj = { type: "text", text: element };
+                post.push(obj);
+                let obj2 = { type: "tag", text: "#" + odds[i] };
+                post.push(obj2);
+            }
+        }
+    }
+    return post;
 }
 
 app.post("/biography", function(request, response) {
@@ -898,31 +943,33 @@ app.get("/ban", function(request, response) {
 
 // return here
 app.post("/banPerson", function(request, response) {
-    var reason = request.body.reason;
-    var time = request.body.time;
-    // calculate time until ban removed
-    var today = incrimentTime(time);
-    // find person to be banned
-    var person = request.body.username;
-    db.collection("users").findOne({
-        _id: person
-    }, function(error, data) {
-        if (error) {
-            console.log(error);
-        }
-        else {
-            var amountOfTimesBanned = data.activity.times;
-            db.collection("users").updateOne({
-                "_id": person
-            }, {
-                $set: {
-                    activity: { active: false, reason: reason, until: today, times: amountOfTimesBanned + 1 }
-                }
-            });
-            io.emit("ban", { person: person, reason: reason });
-            response.send("home");
-        }
-    });
+    if (request.session.username && request.session.admin) {
+        var reason = request.body.reason;
+        var time = request.body.time;
+        // calculate time until ban removed
+        var today = incrimentTime(time);
+        // find person to be banned
+        var person = request.body.username;
+        db.collection("users").findOne({
+            _id: person
+        }, function(error, data) {
+            if (error) {
+                console.log(error);
+            }
+            else {
+                var amountOfTimesBanned = data.activity.times;
+                db.collection("users").updateOne({
+                    "_id": person
+                }, {
+                    $set: {
+                        activity: { active: false, reason: reason, until: today, times: amountOfTimesBanned + 1 }
+                    }
+                });
+                io.emit("ban", { person: person, reason: reason });
+                response.send("home");
+            }
+        });
+    }
 });
 
 function incrimentTime(time) {
@@ -941,38 +988,50 @@ function incrimentTime(time) {
     else if (time[1] == "i") {
         today.setFullYear(Infinity);
     }
+    today = today.getTime();
     return today;
 }
 
 app.post("/unban", function(request, response) {
+    if (request.session.admin && request.session.username) {
+        db.collection("users").findOne({
+            _id: request.body.username
+        }, function(error, user) {
+            var times = user.activity.times;
+            unban(request, times);
+            response.send("reload");
+        });
+    }
+});
+
+app.post("/banQuery", function(request, response) {
     db.collection("users").findOne({
         _id: request.body.username
     }, function(error, user) {
-        var date = new Date();
-        var unBanDate = user.activity.until;
-        if (!unBanDate) {
-            unBanDate = date;
-        }
-        if (request.body.timedOut == false || date.getTime() >= unBanDate.getTime()) {
-            var username = request.session.username;
-            db.collection("users").findOne({
-                "_id": username
-            }, function(error, user) {
-                db.collection("users").updateOne({
-                    "_id": username
-                }, {
-                    $set: {
-                        activity: { active: true, reason: "", until: "", times: user.activity.times }
-                    }
-                });
-            });
-            if (request.body.timedOut) {
+        if (error) { console.log(error) }
+        else {
+            var times = user.activity.times;
+
+            var date = new Date();
+            var until = user.activity.until;
+            date = date.getTime();
+            if (date >= until) {
+                unban(request, times);
                 response.send(false);
             }
-        }
-        else if (request.body.timedOut) {
-            request.session.destroy();
-            response.send(true);
+            else {
+                response.send(true);
+            }
         }
     });
 });
+
+function unban(request, times) {
+    db.collection("users").updateOne({
+        "_id": request.body.username
+    }, {
+        $set: {
+            activity: { active: true, reason: "", until: null, times: times }
+        }
+    });
+}
