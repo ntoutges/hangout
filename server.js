@@ -791,23 +791,23 @@ function combineIntoArray(evens, odds) {
     var evensSplit = evens.split("#");
     var post = [];
     for (var i = 0; i < evensSplit.length; i++) {
-        if (odds[i]) {
-            if (evens[0] == "#") {
-                let obj = { type: "tag", text: "#" + odds[i] };
-                post.push(obj);
-                let element = evensSplit[i].replace(odds[i], "");
-                let obj2 = { type: "text", text: element };
-                post.push(obj2);
+        if (evens[0] == "#") {
+            let obj = { type: "tag", text: "#" + odds[i] };
+            post.push(obj);
+            let element = evensSplit[i].replace(odds[i], "");
+            let obj2 = { type: "text", text: element };
+            post.push(obj2);
+        }
+        else {
+            var i2 = i;
+            if (i >= 1) {
+                i2--;
             }
-            else {
-                var i2 = i;
-                if (i >= 1) {
-                    i2--;
-                }
-                post.tagFirst = false;
-                let element = evensSplit[i].replace(odds[i2], "");
-                let obj = { type: "text", text: element };
-                post.push(obj);
+            post.tagFirst = false;
+            let element = evensSplit[i].replace(odds[i2], "");
+            let obj = { type: "text", text: element };
+            post.push(obj);
+            if (odds[i]) {
                 let obj2 = { type: "tag", text: "#" + odds[i] };
                 post.push(obj2);
             }
