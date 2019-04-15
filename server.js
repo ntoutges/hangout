@@ -966,6 +966,7 @@ app.post("/banPerson", function(request, response) {
                     }
                 });
                 io.emit("ban", { person: person, reason: reason });
+                request.session.username = false;
                 response.send("home");
             }
         });
