@@ -9,7 +9,7 @@ if (profile && profile.clientHeight) {
     changeHeight(profile.clientHeight, profile.clientWidth);
 }
 // in the case image is already loaded
-changeHeight(profile.clientHeight, profile.clientWidth);
+changeHeight(profile.height(), profile.width());
 
 function changeHeight(height, width) {
     if (height > width) {
