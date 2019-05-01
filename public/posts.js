@@ -12,8 +12,10 @@ $("#searchFriends").click(function() {
 });
 
 setInterval(function() {
+    var tags = $("#searchTag").val();
+    tags = tags.replace("#", "");
     $.get("/tag", {
-        tags: $("#searchTag").val()
+        tags: tags
     }, function(data, success) {
         showPosts(data, success);
     });
