@@ -17,7 +17,7 @@
     "express-ejs-layouts": "^2.3.1",
     "express-session": "^1.15.6",
     "formidable": "^1.1.1",
-    "mongodb": "^2.2.25",
+    "mongodb": "^3.6.1",
     "node-imagemagick": "^0.1.8",
     "nodemon": "^1.13.3",
     "profanity-middleware": "^0.3.0",
